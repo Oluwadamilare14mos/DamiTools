@@ -1,54 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DamiTools</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DamiTools â€“ Single Page App</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --text:#111; --muted:#666; --brand:#2563eb; --accent:#10b981; --danger:#ef4444;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1115; --card:#151922; --text:#e8e8e8; --muted:#a0a4ad; --brand:#3b82f6; --accent:#22c55e; --danger:#f87171;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+  header{
+    position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid #e5e7eb;
+    display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#fff;font-weight:900}
+  .actions{display:flex;align-items:center;gap:8px}
+  .iconbtn{border:1px solid #e5e7eb;background:var(--card);color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer}
+  .iconbtn:active{transform:scale(.98)}
+  nav{
+    position:sticky;top:58px;z-index:15;background:var(--card);display:flex;gap:8px;padding:10px;border-bottom:1px solid #e5e7eb;
+    overflow:auto;
+  }
+  nav button{
+    padding:8px 12px;border-radius:999px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;white-space:nowrap
+  }
+  [data-theme="dark"] nav button{background:#0f1115;color:#e8e8e8;border-color:#263043}
+  nav button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .toolbar{display:flex;gap:8px;padding:10px}
+  .search{flex:1;display:flex;gap:8px}
+  .search input{flex:1;padding:12px;border-radius:10px;border:1px solid #d1d5db;background:var(--card);color:var(--text)}
+  .search .mic,.search .camera{padding:0 12px;border-radius:10px;border:1px solid #d1d5db;background:var(--card);cursor:pointer}
+  .content{padding:10px 10px 80px}
+  .grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:12px
+  }
+  .card{
+    background:var(--card);border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;display:flex;flex-direction:column
+  }
+  .card img{width:100%;height:150px;object-fit:cover;background:#e5e7eb}
+  .card .info{padding:10px}
+  .title{font-size:14px;font-weight:700;line-height:1.3;margin:0 0 6px}
+  .price{color:var(--accent);font-weight:800;margin:0 0 8px}
+  .muted{color:var(--muted);font-size:12px}
+  .btn{display:inline-block;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer;width:100%}
+  .btn:active{transform:scale(.99)}
+  .danger{background:var(--danger)}
+  /* sections */
+  .section{display:none}
+  .section.active{display:block}
+  /* cart */
+  .cart-list{display:flex;flex-direction:column;gap:10px}
+  .cart-item{display:flex;gap:10px;background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:10px;align-items:center}
+  .cart-item img{width:72px;height:72px;object-fit:cover;border-radius:8px}
+  .cart-item .name{font-weight:700}
+  .cart-footer{position:sticky;bottom:0;background:var(--card);border-top:1px solid #e5e7eb;padding:12px;display:flex;gap:10px}
+  .summary{flex:1}
+  /* sheet / modal */
+  dialog{border:none;border-radius:16px;max-width:520px;width:92%;padding:0;background:var(--card);color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .sheet-header{padding:14px 16px;border-bottom:1px solid #e5e7eb;font-weight:800}
+  .sheet-body{padding:14px 16px}
+  .row{display:flex;gap:10px;margin-bottom:10px}
+  .row label{min-width:90px}
+  .switch{display:flex;align-items:center;gap:10px}
+  .pill{padding:6px 10px;border:1px solid #d1d5db;border-radius:999px}
+  .help a{color:var(--brand);text-decoration:none}
+  .footer-space{height:12px}
+</style>
 </head>
 <body>
-  <header>
-    <img src="images/do.png" alt="DamiTools Logo" class="logo">
-    <h1>Welcome to DamiTools</h1>
-    <nav>
-      <button onclick="showPage('home')">Home</button>
-      <button onclick="showPage('products')">Products</button>
-      <button onclick="showPage('support')">Help & Support</button>
-    </nav>
-  </header>
 
-  <main id="content">
-    <section id="home" class="page active">
-      <h2>Home</h2>
-      <p>Your one-stop shop for electrical tools & lighting.</p>
-    </section>
+<header>
+  <div class="brand">
+    <div class="logo">DT</div>
+    <div>
+      <div>DamiTools</div>
+      <small class="muted">Electricals â€¢ Lighting â€¢ Gadgets</small>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="iconbtn" id="settingsBtn">âš™ï¸</button>
+    <button class="iconbtn" id="accountBtn">ðŸ‘¤</button>
+    <button class="iconbtn" id="cartBtn">ðŸ›’ <span id="cartCount" class="pill">0</span></button>
+  </div>
+</header>
 
-    <section id="products" class="page">
-      <h2>Our Products</h2>
-      <div class="grid">
-        <div class="item">
-          <img src="https://via.placeholder.com/150" alt="Bulb">
-          <p>LED Bulb – ₦500</p>
-        </div>
-        <div class="item">
-          <img src="https://via.placeholder.com/150" alt="Switch">
-          <p>Switch – ₦1,200</p>
-        </div>
+<nav id="tabs">
+  <button data-tab="home" class="active">Home</button>
+  <button data-tab="categories">Categories</button>
+  <button data-tab="cart">Cart</button>
+  <button data-tab="account">Account</button>
+</nav>
+
+<div class="toolbar">
+  <div class="search">
+    <input id="searchInput" type="text" placeholder="Search productsâ€¦ (e.g. wire, switch, fan)" />
+    <button class="mic" id="micBtn">ðŸŽ¤</button>
+    <button class="camera" id="cameraBtn">ðŸ“·</button>
+  </div>
+</div>
+
+<main class="content">
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="grid" id="productGrid"></div>
+    <div class="footer-space"></div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section id="categories" class="section">
+    <div class="row" style="flex-wrap:wrap">
+      <button class="pill" data-cat="All">All</button>
+      <button class="pill" data-cat="Lighting">Lighting</button>
+      <button class="pill" data-cat="Switches & Sockets">Switches & Sockets</button>
+      <button class="pill" data-cat="Wires & Cables">Wires & Cables</button>
+      <button class="pill" data-cat="Electrical Tools">Electrical Tools</button>
+      <button class="pill" data-cat="DFB & Protection">DFB & Protection</button>
+      <button class="pill" data-cat="Conduit & Boxes">Conduit & Boxes</button>
+      <button class="pill" data-cat="Power & Supply">Power & Supply</button>
+      <button class="pill" data-cat="Gadgets">Gadgets</button>
+      <button class="pill" data-cat="Solar & Outdoor">Solar & Outdoor</button>
+      <button class="pill" data-cat="Accessories">Accessories</button>
+    </div>
+    <div class="grid" id="categoryGrid"></div>
+  </section>
+
+  <!-- CART -->
+  <section id="cart" class="section">
+    <div id="cartList" class="cart-list"></div>
+    <div class="cart-footer">
+      <div class="summary">
+        <div class="muted">Subtotal</div>
+        <div id="cartTotal" class="price">â‚¦0</div>
       </div>
-    </section>
+      <button id="checkoutBtn" class="btn">Checkout</button>
+    </div>
+  </section>
 
-    <section id="support" class="page">
-      <h2>Help & Support</h2>
-      <p>Contact us at: <strong>+234-XXXXXXXXXX</strong></p>
-    </section>
-  </main>
+  <!-- ACCOUNT -->
+  <section id="account" class="section">
+    <div class="card" style="padding:14px">
+      <div class="row"><label>Name</label><input id="accName" type="text" placeholder="Your name" /></div>
+      <div class="row"><label>Phone</label><input id="accPhone" type="tel" placeholder="080â€¦" /></div>
+      <div class="row"><label>Email</label><input id="accEmail" type="email" placeholder="you@example.com" /></div>
+      <div class="row"><label>Password</label><input id="accPass" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" /></div>
+      <button class="btn" id="saveAccountBtn">Save Account</button>
+    </div>
+  </section>
+</main>
 
-  <footer>
-    <p>&copy; 2025 DamiTools</p>
-  </footer>
+<!-- SETTINGS SHEET -->
+<dialog id="settingsSheet">
+  <div class="sheet-header">Settings & Support</div>
+  <div class="sheet-body">
+    <div class="switch">
+      <input type="checkbox" id="themeToggle" />
+      <label for="themeToggle">Dark Mode</label>
+    </div>
+    <hr />
+    <div class="help">
+      <p><strong>Help & Support</strong></p>
+      <p>WhatsApp: <a href="https://wa.me/2348000000000" target="_blank">Chat DamiTools</a></p>
+      <p>Email: <a href="mailto:support@damitools.example">support@damitools.example</a></p>
+      <p>FAQ: Delivery in Lagos & nationwide. Returns within 7 days (unused, in box).</p>
+    </div>
+    <hr />
+    <div>
+      <p><strong>Leave a Review</strong></p>
+      <textarea id="reviewBox" rows="3" style="width:100%;border-radius:10px;border:1px solid #d1d5db;background:var(--card);color:var(--text)" placeholder="How was your experience?"></textarea>
+      <button id="sendReview" class="btn" style="margin-top:8px">Submit Review</button>
+    </div>
+    <div class="footer-space"></div>
+  </div>
+</dialog>
 
-  <script src="script.js"></script>
+<script>
+/* ---------- PRODUCTS (online images + sample prices in â‚¦) ---------- */
+const PRODUCTS = [
+  // LIGHTING
+  {id:1,  name:"18W POP Light", price:2500, cat:"Lighting", img:"https://images.unsplash.com/photo-1511885912-516e6bd8fb83?q=80&w=800&auto=format&fit=crop"},
+  {id:2,  name:"12W POP Light", price:1800, cat:"Lighting", img:"https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=800&auto=format&fit=crop"},
+  {id:3,  name:"6W POP Light",  price:1200, cat:"Lighting", img:"https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=800&auto=format&fit=crop"},
+  {id:4,  name:"30W POP Light", price:4200, cat:"Lighting", img:"https://images.unsplash.com/photo-1540932239986-30128078f3d1?q=80&w=800&auto=format&fit=crop"},
+  {id:5,  name:"Chandelier (Modern)", price:35000, cat:"Lighting", img:"https://images.unsplash.com/photo-1560185008-b033106af2fb?q=80&w=800&auto=format&fit=crop"},
+  {id:6,  name:"Dropping Light (3-Head)", price:22000, cat:"Lighting", img:"https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=800&auto=format&fit=crop"},
+  {id:7,  name:"Lamp Holder", price:800, cat:"Lighting", img:"https://images.unsplash.com/photo-1615634716235-5b64a40f19a6?q=80&w=800&auto=format&fit=crop"},
+  {id:8,  name:"LED Spotlight", price:3000, cat:"Lighting", img:"https://images.unsplash.com/photo-1550525811-e5869dd03032?q=80&w=800&auto=format&fit=crop"},
+  {id:9,  name:"Bulkhead 18W", price:4500, cat:"Lighting", img:"https://images.unsplash.com/photo-1616594039964-8cf2d94b16d3?q=80&w=800&auto=format&fit=crop"},
+  {id:10, name:"Bulkhead 24W", price:6200, cat:"Lighting", img:"https://images.unsplash.com/photo-1606161869211-0c2a4c1b9cb0?q=80&w=800&auto=format&fit=crop"},
+  {id:11, name:"Garden Light 18W", price:12000, cat:"Lighting", img:"https://images.unsplash.com/photo-1545235617-9465d2a55698?q=80&w=800&auto=format&fit=crop"},
+  {id:12, name:"Garden Light 24W", price:15000, cat:"Lighting", img:"https://images.unsplash.com/photo-1517959105821-eaf2591984b2?q=80&w=800&auto=format&fit=crop"},
+  {id:13, name:"LED Half-Moon", price:4800, cat:"Lighting", img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop"},
+  // SWITCHES & SOCKETS
+  {id:20, name:"1-Gang Switch", price:1200, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1560179707-f14e90ef1e38?q=80&w=800&auto=format&fit=crop"},
+  {id:21, name:"2-Gang Switch", price:1800, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1604636345203-5b8c5f0de1a1?q=80&w=800&auto=format&fit=crop"},
+  {id:22, name:"3-Gang Switch", price:2400, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=800&auto=format&fit=crop"},
+  {id:23, name:"4-Gang Switch", price:3000, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1604335394442-1a3dfcc5a2dd?q=80&w=800&auto=format&fit=crop"},
+  {id:24, name:"13A Single Socket", price:2200, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1587896110521-6b0f6f2468b6?q=80&w=800&auto=format&fit=crop"},
+  {id:25, name:"13A Double Socket", price:3200, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1516383740770-facf6a7d5b6a?q=80&w=800&auto=format&fit=crop"},
+  {id:26, name:"15A Socket", price:3500, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop"},
+  {id:27, name:"Water Heater Switch 20A", price:4200, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1594100134201-7a3a8680a039?q=80&w=800&auto=format&fit=crop"},
+  {id:28, name:"Water Heater Switch 45A", price:6500, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1612198185228-7a7c93ce2ad2?q=80&w=800&auto=format&fit=crop"},
+  {id:29, name:"Cooker Unit", price:9000, cat:"Switches & Sockets", img:"https://images.unsplash.com/photo-1520967975393-87f88ab2124c?q=80&w=800&auto=format&fit=crop"},
+  // WIRES & CABLES
+  {id:40, name:"1mm Wire", price:3800, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1604933762020-1c9d4a1a278e?q=80&w=800&auto=format&fit=crop"},
+  {id:41, name:"1.5mm Wire", price:4500, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1555617981-dac3880eac1f?q=80&w=800&auto=format&fit=crop"},
+  {id:42, name:"2.5mm Wire", price:7800, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop"},
+  {id:43, name:"4mm Wire", price:11500, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1565619624091-5f5f0b8bafcd?q=80&w=800&auto=format&fit=crop"},
+  {id:44, name:"6mm Wire", price:16500, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1593941707882-a5bba14938c0?q=80&w=800&auto=format&fit=crop"},
+  {id:45, name:"10mm Wire", price:24500, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?q=80&w=800&auto=format&fit=crop"},
+  {id:46, name:"16mm Wire", price:34000, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1593362813290-0f9f12c90eb2?q=80&w=800&auto=format&fit=crop"},
+  {id:47, name:"25mm Wire", price:52000, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop"},
+  {id:48, name:"35mm Wire", price:69000, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1621401021841-1bb157ccd44d?q=80&w=800&auto=format&fit=crop"},
+  {id:49, name:"50mm Wire", price:89000, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1545235617-9465d2a55698?q=80&w=800&auto=format&fit=crop"},
+  {id:50, name:"Flexible Wire 2.5mm", price:6500, cat:"Wires & Cables", img:"https://images.unsplash.com/photo-1620712943543-bcc8e79f3b0d?q=80&w=800&auto=format&fit=crop"},
+  // ELECTRICAL TOOLS
+  {id:60, name:"Knife Switch", price:2500, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1606813907291-76bdc6fc0b7b?q=80&w=800&auto=format&fit=crop"},
+  {id:61, name:"Fuse & Base", price:1200, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?q=80&w=800&auto=format&fit=crop"},
+  {id:62, name:"Contactor", price:14500, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1617191517400-5a3b3a9b0a8b?q=80&w=800&auto=format&fit=crop"},
+  {id:63, name:"Relay", price:6500, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1581092336710-6a3e1c9b4191?q=80&w=800&auto=format&fit=crop"},
+  {id:64, name:"Fishing Tape", price:3500, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1520333789090-d8fef1db84f0?q=80&w=800&auto=format&fit=crop"},
+  {id:65, name:"Tower Clip (Assorted)", price:1500, cat:"Electrical Tools", img:"https://images.unsplash.com/photo-1520975922284-427dc7ecd0f6?q=80&w=800&auto=format&fit=crop"},
+  // DFB & PROTECTION
+  {id:70, name:"DFB Single Phase", price:18500, cat:"DFB & Protection", img:"https://images.unsplash.com/photo-1581092921461-eab62e97a5d2?q=80&w=800&auto=format&fit=crop"},
+  {id:71, name:"DFB Three Phase", price:42000, cat:"DFB & Protection", img:"https://images.unsplash.com/photo-1593942565571-3b5f3d3d6a6f?q=80&w=800&auto=format&fit=crop"},
+  {id:72, name:"Circuit Breaker 32A", price:3800, cat:"DFB & Protection", img:"https://images.unsplash.com/photo-1617196034790-52c5ed2f8cc5?q=80&w=800&auto=format&fit=crop"},
+  // CONDUIT & BOXES
+  {id:80, name:"25mm PVC Pipe", price:1500, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1581091870622-7c77c2b6e8f6?q=80&w=800&auto=format&fit=crop"},
+  {id:81, name:"20mm PVC Pipe", price:1200, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1556909212-31d4f8d9d7de?q=80&w=800&auto=format&fit=crop"},
+  {id:82, name:"3x3 PVC Box", price:400, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1545235617-9465d2a55698?q=80&w=800&auto=format&fit=crop"},
+  {id:83, name:"4x4 PVC Box", price:600, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=800&auto=format&fit=crop"},
+  {id:84, name:"6x6 PVC Box", price:900, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1615485737651-6f6b31dadd4d?q=80&w=800&auto=format&fit=crop"},
+  {id:85, name:"U / Y / T Box (Set)", price:1200, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1581093588401-10f40b7b5bd9?q=80&w=800&auto=format&fit=crop"},
+  {id:86, name:"4-Way Box", price:1000, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1556909192-8f6ea4ed2e49?q=80&w=800&auto=format&fit=crop"},
+  {id:87, name:"Through Box", price:1100, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1581091215367-59d2f9b391d4?q=80&w=800&auto=format&fit=crop"},
+  {id:88, name:"PVC Gum", price:900, cat:"Conduit & Boxes", img:"https://images.unsplash.com/photo-1609250291996-3b6d292743ff?q=80&w=800&auto=format&fit=crop"},
+  // POWER & SUPPLY
+  {id:90, name:"60W Power Supply", price:8500, cat:"Power & Supply", img:"https://images.unsplash.com/photo-1581093586647-8a5a0c1e2ddb?q=80&w=800&auto=format&fit=crop"},
+  {id:91, name:"100W Power Supply", price:12000, cat:"Power & Supply", img:"https://images.unsplash.com/photo-1617191517400-5a3b3a9b0a8b?q=80&w=800&auto=format&fit=crop"},
+  {id:92, name:"200W Power Supply", price:18000, cat:"Power & Supply", img:"https://images.unsplash.com/photo-1530096688872-5c3a7d79c5bb?q=80&w=800&auto=format&fit=crop"},
+  {id:93, name:"300W Power Supply", price:25000, cat:"Power & Supply", img:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"},
+  {id:94, name:"400W Power Supply", price:33000, cat:"Power & Supply", img:"https://images.unsplash.com/photo-1505575972945-2804bdaac47f?q=80&w=800&auto=format&fit=crop"},
+  // SOLAR & OUTDOOR
+  {id:100,name:"Solar Light 100W", price:25000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?q=80&w=800&auto=format&fit=crop"},
+  {id:101,name:"Solar Light 150W", price:29000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1482192505345-5655af888cc4?q=80&w=800&auto=format&fit=crop"},
+  {id:102,name:"Solar Light 200W", price:35000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1495638613372-5f83c65f0a15?q=80&w=800&auto=format&fit=crop"},
+  {id:103,name:"Solar Light 250W", price:42000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1581092921461-eab62e97a5d2?q=80&w=800&auto=format&fit=crop"},
+  {id:104,name:"Solar Light 300W", price:52000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1509395176047-4a66953fd231?q=80&w=800&auto=format&fit=crop"},
+  {id:105,name:"AKT Flood 50W", price:14000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1530124566582-a618bc2615dc?q=80&w=800&auto=format&fit=crop"},
+  {id:106,name:"AKT Flood 100W", price:21000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=800&auto=format&fit=crop"},
+  {id:107,name:"AKT Flood 200W", price:32000, cat:"Solar & Outdoor", img:"https://images.unsplash.com/photo-1481349518771-20055b2a7b24?q=80&w=800&auto=format&fit=crop"},
+  // GADGETS & FANS
+  {id:120,name:"Power Bank 20,000mAh", price:12000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=800&auto=format&fit=crop"},
+  {id:121,name:"Bluetooth Speaker", price:8500, cat:"Gadgets", img:"https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop"},
+  {id:122,name:"Home Theater System", price:85000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1585386959984-a4155223168f?q=80&w=800&auto=format&fit=crop"},
+  {id:123,name:"Sound Bar", price:65000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1555169062-013468b47731?q=80&w=800&auto=format&fit=crop"},
+  {id:124,name:"PS4 Console", price:180000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1610407613698-cb2b8e4c0b1a?q=80&w=800&auto=format&fit=crop"},
+  {id:125,name:"Android Phone", price:95000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop"},
+  {id:126,name:"iPhone", price:350000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop"},
+  {id:127,name:"iPad", price:280000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=800&auto=format&fit=crop"},
+  {id:128,name:"Standing Fan", price:18000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1523419409543-8ea5f7ea2c22?q=80&w=800&auto=format&fit=crop"},
+  {id:129,name:"Ceiling Fan", price:22000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1620121692029-d088224ddc74?q=80&w=800&auto=format&fit=crop"},
+  {id:130,name:"Wall Fan", price:19000, cat:"Gadgets", img:"https://images.unsplash.com/photo-1603366615917-1fa6dad5c4fa?q=80&w=800&auto=format&fit=crop"},
+  // ACCESSORIES
+  {id:140,name:"Black Tape", price:500, cat:"Accessories", img:"https://images.unsplash.com/photo-1606813907291-76bdc6fc0b7b?q=80&w=800&auto=format&fit=crop"},
+  {id:141,name:"13A Plug", price:1200, cat:"Accessories", img:"https://images.unsplash.com/photo-1587896110521-6b0f6f2468b6?q=80&w=800&auto=format&fit=crop"},
+  {id:142,name:"15A Plug", price:1500, cat:"Accessories", img:"https://images.unsplash.com/photo-1516383740770-facf6a7d5b6a?q=80&w=800&auto=format&fit=crop"},
+];
+
+/* ---------- STATE ---------- */
+const state = {
+  tab: "home",
+  cart: JSON.parse(localStorage.getItem("damitools_cart")||"[]"),
+  theme: localStorage.getItem("damitools_theme") || "light",
+  account: JSON.parse(localStorage.getItem("damitools_account")||"{}"),
+  filterCat: "All",
+  search: ""
+};
+
+/* ---------- HELPERS ---------- */
+const fmt = n => "â‚¦" + n.toLocaleString();
+
+/* ---------- RENDER ---------- */
+const productGrid = document.getElementById("productGrid");
+const categoryGrid = document.getElementById("categoryGrid");
+const cartList = document.getElementById("cartList");
+const cartTotal = document.getElementById("cartTotal");
+const cartCount = document.getElementById("cartCount");
+
+function filteredProducts(){
+  return PRODUCTS.filter(p=>{
+    const byCat = state.filterCat==="All" || state.tab!=="categories" ? true : p.cat===state.filterCat;
+    const bySearch = state.search ? (p.name.toLowerCase().includes(state.search)) : true;
+    return byCat && bySearch;
+  });
+}
+
+function cardHTML(p){
+  return `
+  <div class="card">
+    <img src="${p.img}" alt="${p.name}" loading="lazy"/>
+    <div class="info">
+      <p class="title">${p.name}</p>
+      <p class="muted">${p.cat}</p>
+      <p class="price">${fmt(p.price)}</p>
+      <button class="btn" onclick="addToCart(${p.id})">Add to Cart</button>
+    </div>
+  </div>`;
+}
+
+function render(){
+  document.documentElement.setAttribute("data-theme", state.theme==="dark" ? "dark" : "light");
+  document.getElementById("themeToggle").checked = state.theme==="dark";
+
+  const items = filteredProducts();
+  const html = items.map(cardHTML).join("");
+  if(state.tab==="home"){
+    productGrid.innerHTML = html || `<p class="muted">No products match your search.</p>`;
+  }else if(state.tab==="categories"){
+    categoryGrid.innerHTML = html || `<p class="muted" style="padding:10px">No products in this category.</p>`;
+  }
+
+  // cart
+  cartCount.textContent = state.cart.reduce((a,c)=>a+c.qty,0);
+  cartList.innerHTML = state.cart.map(c=>`
+    <div class="cart-item">
+      <img src="${c.img}" alt="${c.name}"/>
+      <div style="flex:1">
+        <div class="name">${c.name}</div>
+        <div class="muted">${c.cat}</div>
+        <div class="price">${fmt(c.price)} Ã— ${c.qty}</div>
+      </div>
+      <div>
+        <button class="iconbtn" onclick="decQty(${c.id})">âˆ’</button>
+        <button class="iconbtn" onclick="incQty(${c.id})">+</button>
+        <button class="iconbtn" onclick="removeFromCart(${c.id})">ðŸ—‘</button>
+      </div>
+    </div>
+  `).join("") || `<p class="muted" style="padding:10px">Your cart is empty.</p>`;
+  const total = state.cart.reduce((a,c)=>a + c.price*c.qty,0);
+  cartTotal.textContent = fmt(total);
+}
+
+/* ---------- CART ---------- */
+function addToCart(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  const found = state.cart.find(x=>x.id===id);
+  if(found){ found.qty += 1; } else { state.cart.push({...p, qty:1}); }
+  localStorage.setItem("damitools_cart", JSON.stringify(state.cart));
+  render(); alert("Added to cart: "+p.name);
+}
+function incQty(id){ const c=state.cart.find(x=>x.id===id); if(c){c.qty++; saveCart();} }
+function decQty(id){ const c=state.cart.find(x=>x.id===id); if(c){c.qty=Math.max(1,c.qty-1); saveCart();} }
+function removeFromCart(id){ state.cart = state.cart.filter(x=>x.id!==id); saveCart(); }
+function saveCart(){ localStorage.setItem("damitools_cart", JSON.stringify(state.cart)); render(); }
+
+/* ---------- TABS ---------- */
+const sections = document.querySelectorAll(".section");
+document.getElementById("tabs").addEventListener("click", (e)=>{
+  if(e.target.tagName!=="BUTTON") return;
+  const tab = e.target.dataset.tab;
+  state.tab = tab;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");
+  sections.forEach(s=>s.classList.remove("active"));
+  document.getElementById(tab).classList.add("active");
+  render();
+});
+
+/* ---------- SEARCH + MIC ---------- */
+const searchInput = document.getElementById("searchInput");
+searchInput.addEventListener("input", ()=>{
+  state.search = searchInput.value.toLowerCase();
+  render();
+});
+
+// voice search (if supported)
+const micBtn = document.getElementById("micBtn");
+micBtn.addEventListener("click", ()=>{
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert("Voice search not supported on this device."); return; }
+  const rec = new SR(); rec.lang="en-US"; rec.start();
+  rec.onresult = (e)=>{
+    const text = e.results[0][0].transcript;
+    searchInput.value = text; state.search = text.toLowerCase(); render();
+  };
+});
+
+/* ---------- CAMERA (placeholder) ---------- */
+document.getElementById("cameraBtn").addEventListener("click", ()=>{
+  alert("Camera scan coming soon! (Weâ€™ll use it to scan product labels or upload photos.)");
+});
+
+/* ---------- CATEGORIES ---------- */
+document.querySelectorAll('[data-cat]').forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.filterCat = btn.dataset.cat;
+    state.tab = "categories";
+    document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+    document.querySelector('nav button[data-tab="categories"]').classList.add("active");
+    sections.forEach(s=>s.classList.remove("active"));
+    document.getElementById("categories").classList.add("active");
+    render();
+  });
+});
+
+/* ---------- ACCOUNT ---------- */
+const accName = document.getElementById("accName");
+const accPhone = document.getElementById("accPhone");
+const accEmail = document.getElementById("accEmail");
+const accPass = document.getElementById("accPass");
+function loadAccount(){
+  accName.value = state.account.name || "";
+  accPhone.value = state.account.phone || "";
+  accEmail.value = state.account.email || "";
+  accPass.value = state.account.pass || "";
+}
+document.getElementById("saveAccountBtn").addEventListener("click", ()=>{
+  state.account = {name:accName.value, phone:accPhone.value, email:accEmail.value, pass:accPass.value};
+  localStorage.setItem("damitools_account", JSON.stringify(state.account));
+  alert("Account saved on this device.");
+});
+document.getElementById("accountBtn").addEventListener("click", ()=>{
+  state.tab="account";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.querySelector('nav button[data-tab="account"]').classList.add("active");
+  sections.forEach(s=>s.classList.remove("active"));
+  document.getElementById("account").classList.add("active");
+  loadAccount(); render();
+});
+
+/* ---------- SETTINGS ---------- */
+const settingsSheet = document.getElementById("settingsSheet");
+document.getElementById("settingsBtn").addEventListener("click", ()=>settingsSheet.showModal());
+settingsSheet.addEventListener("close", ()=>{});
+document.getElementById("sendReview").addEventListener("click", ()=>{
+  const txt = document.getElementById("reviewBox").value.trim();
+  if(!txt) return alert("Please write a short review first.");
+  localStorage.setItem("damitools_last_review", txt);
+  document.getElementById("reviewBox").value="";
+  alert("Thanks for your review! âœ…");
+});
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("change", ()=>{
+  state.theme = themeToggle.checked ? "dark" : "light";
+  localStorage.setItem("damitools_theme", state.theme);
+  render();
+});
+
+/* ---------- CART BUTTON ---------- */
+document.getElementById("cartBtn").addEventListener("click", ()=>{
+  state.tab="cart";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.querySelector('nav button[data-tab="cart"]').classList.add("active");
+  sections.forEach(s=>s.classList.remove("active"));
+  document.getElementById("cart").classList.add("active");
+  render();
+});
+
+/* ---------- INIT ---------- */
+(function init(){
+  // theme
+  if(state.theme==="dark") document.documentElement.setAttribute("data-theme","dark");
+  // account
+  loadAccount();
+  // initial render
+  render();
+})();
+</script>
 </body>
-
 </html>
-
