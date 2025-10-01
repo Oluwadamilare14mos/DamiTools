@@ -1,11 +1,31 @@
-// ===== SPLASH SCREEN =====
+// ===============================
+// Splash Screen Hide
+// ===============================
 window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
   setTimeout(() => {
-    document.getElementById("splash").style.display = "none";
-  }, 2500); // 2.5 seconds
+    splash.style.display = "none";
+  }, 2500);
 });
 
-// ===== FIREBASE CONFIG =====
+// ===============================
+// Side Menu Toggle
+// ===============================
+const menuBtn = document.getElementById("menu-btn");
+const sideMenu = document.getElementById("side-menu");
+const closeMenu = document.getElementById("close-menu");
+
+menuBtn.addEventListener("click", () => {
+  sideMenu.classList.add("active");
+});
+
+closeMenu.addEventListener("click", () => {
+  sideMenu.classList.remove("active");
+});
+
+// ===============================
+// Firebase Setup
+// ===============================
 const firebaseConfig = {
   apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
   authDomain: "damitools.firebaseapp.com",
@@ -17,50 +37,54 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
 
-// ===== SAMPLE CART =====
-let cart = [];
+// ===============================
+// Firebase Authentication
+// ===============================
+const provider = new firebase.auth.GoogleAuthProvider();
+const userProfile = document.getElementById("user-profile");
 
-function addToCart(productId, name, price) {
-  cart.push({ productId, name, price });
-  alert(`${name} added to cart!`);
-  updateCartCount();
-}
-
-function updateCartCount() {
-  const cartBtn = document.querySelector(".cart-btn");
-  if (cartBtn) {
-    cartBtn.innerText = `Cart (${cart.length})`;
+function updateUserUI(user) {
+  if (user) {
+    userProfile.innerHTML = `
+      <img src="${user.photoURL || 'assets/images/default-avatar.png'}" alt="Profile">
+      <h3>${user.displayName}</h3>
+      <p>${user.email}</p>
+      <button onclick="logout()">Logout</button>
+    `;
+  } else {
+    userProfile.innerHTML = `
+      <button onclick="login()">Login with Google</button>
+    `;
   }
 }
 
-// ===== CATEGORY CLICK =====
-function showCategory(category) {
-  alert(`Showing products for ${category}`);
-  // Later we will fetch from Firestore
-}
-
-// ===== BACK BUTTON =====
-window.onpopstate = function () {
-  if (document.referrer !== "") {
-    window.history.back();
-  }
-};
-
-// ===== LOGIN SYSTEM PLACEHOLDER =====
-function loginUser(email, password) {
-  auth.signInWithEmailAndPassword(email, password)
-    .then(user => {
-      alert("Logged in successfully");
+function login() {
+  firebase.auth().signInWithPopup(provider)
+    .then(result => {
+      updateUserUI(result.user);
     })
-    .catch(err => {
-      alert("Error: " + err.message);
+    .catch(error => {
+      console.error("Login error:", error.message);
     });
 }
 
-// ===== PAYMENT PLACEHOLDER =====
-function payNow(amount) {
-  alert(`Payment gateway will handle ₦${amount}`);
+function logout() {
+  firebase.auth().signOut().then(() => {
+    updateUserUI(null);
+  });
 }
+
+// Listen for state changes
+firebase.auth().onAuthStateChanged(user => {
+  updateUserUI(user);
+});
+
+// ===============================
+// Product Click (future expansion)
+// ===============================
+document.querySelectorAll(".product-card").forEach(card => {
+  card.addEventListener("click", () => {
+    alert("Open product details here (3 images, description, similar items).");
+  });
+});
