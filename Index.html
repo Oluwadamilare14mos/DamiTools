@@ -8,54 +8,99 @@
   <script defer src="js/main.js"></script>
 </head>
 <body>
+
   <!-- Splash Screen -->
   <div id="splash">
-    <img src="assets/images/logo.png" alt="DamiTools Logo" class="splash-logo">
+    <img src="assets/images/logo.png" alt="DamiTools Logo">
   </div>
 
-  <!-- Main Content -->
-  <div id="main-content" style="display:none;">
-    <!-- Navbar -->
-    <header>
-      <div class="logo">DamiTools</div>
-      <nav>
-        <ul>
-          <li><a href="index.html" class="active">Home</a></li>
-          <li><a href="#">Categories</a></li>
-          <li><a href="cart.html">Cart</a></li>
-        </ul>
-      </nav>
-    </header>
+  <!-- Header -->
+  <header>
+    <nav>
+      <ul class="nav-left">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="categories.html">Category</a></li>
+        <li><a href="cart.html">Cart</a></li>
+      </ul>
+      <div class="nav-center">
+        <img src="assets/images/logo.png" alt="DamiTools Logo" class="logo">
+      </div>
+      <div class="nav-right">
+        <div class="search-bar">
+          <button class="cam-btn">📷</button>
+          <input type="text" placeholder="Search products...">
+        </div>
+        <button id="menu-btn">☰</button>
+      </div>
+    </nav>
+  </header>
 
-    <!-- Search -->
-    <section class="search-bar">
-      <input type="text" placeholder="Search products...">
-      <button class="cam-btn">📷</button>
+  <!-- Side Menu -->
+  <aside id="side-menu">
+    <button id="close-menu">×</button>
+
+    <!-- User Profile -->
+    <div id="user-profile">
+      <img id="user-photo" src="assets/images/default-avatar.png" alt="User Photo" />
+      <h3 id="user-name">Guest</h3>
+    </div>
+
+    <ul>
+      <li><a href="profile.html">Account / Profile</a></li>
+      <li><a href="help.html">Help & Support</a></li>
+      <li><a href="tel:09036470778">Customer Service</a></li>
+      <li><a href="https://wa.me/234705470008">WhatsApp Support</a></li>
+      <li><a href="mailto:damitools@gmail.com">Gmail Support</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="app.html">📱 Get DamiTools App</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <section class="hero">
+      <h1>Welcome to DamiTools Electrical Gadgets</h1>
+      <p>Your one-stop shop for electronics & tools</p>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories">
+      <h2>Shop by Category</h2>
+      <ul>
+        <li><a href="category-electronics.html">Electronics</a></li>
+        <li><a href="category-tools.html">Tools</a></li>
+        <li><a href="category-accessories.html">Accessories</a></li>
+        <li><a href="category-appliances.html">Home Appliances</a></li>
+      </ul>
     </section>
 
     <!-- Product Grid -->
     <section class="products">
-      <div class="product-card">
-        <img src="assets/images/light1.jpg" alt="18W POP Light">
-        <h3>18W POP Light</h3>
-        <p>₦2,500</p>
-        <button>Add to Cart</button>
+      <h2>Featured Products</h2>
+      <div class="product-grid">
+        <div class="product-card" onclick="openProduct('Electric Drill')">
+          <img src="assets/images/drill.jpg" alt="Electric Drill">
+          <h3>Electric Drill</h3>
+          <p>₦15,000</p>
+        </div>
+        <div class="product-card" onclick="openProduct('Smart Bulb')">
+          <img src="assets/images/bulb.jpg" alt="Smart Bulb">
+          <h3>Smart Bulb</h3>
+          <p>₦5,000</p>
+        </div>
+        <div class="product-card" onclick="openProduct('Power Bank')">
+          <img src="assets/images/powerbank.jpg" alt="Power Bank">
+          <h3>Power Bank</h3>
+          <p>₦12,000</p>
+        </div>
       </div>
-      <div class="product-card">
-        <img src="assets/images/light2.jpg" alt="12W POP Light">
-        <h3>12W POP Light</h3>
-        <p>₦1,800</p>
-        <button>Add to Cart</button>
-      </div>
-      <!-- More products here -->
     </section>
+  </main>
 
-    <!-- Footer -->
-    <footer>
-      <p>Help & Support | Customer Service: <a href="tel:09036470778">09036470778</a></p>
-      <p><a href="https://wa.me/234705470008">WhatsApp</a> | <a href="mailto:yourgmail@gmail.com">Gmail</a></p>
-      <p><a href="https://expo.dev/accounts/oluwadamilaremose/projects/DamiTools">Download DamiTools App</a></p>
-    </footer>
-  </div>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 DamiTools. All rights reserved.</p>
+  </footer>
+
 </body>
 </html>
