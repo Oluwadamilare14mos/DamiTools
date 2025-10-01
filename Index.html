@@ -3,104 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DamiTools</title>
+  <title>DamiTools - Electrical Gadgets</title>
   <link rel="stylesheet" href="css/style.css">
   <script defer src="js/main.js"></script>
 </head>
 <body>
-
   <!-- Splash Screen -->
-  <div id="splash">
-    <img src="assets/images/logo.png" alt="DamiTools Logo">
+  <div id="splash-screen">
+    <img src="assets/images/logo.png" alt="DamiTools Logo" class="splash-logo">
   </div>
 
-  <!-- Header -->
-  <header>
-    <nav>
-      <ul class="nav-left">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="categories.html">Category</a></li>
-        <li><a href="cart.html">Cart</a></li>
-      </ul>
-      <div class="nav-center">
-        <img src="assets/images/logo.png" alt="DamiTools Logo" class="logo">
-      </div>
-      <div class="nav-right">
-        <div class="search-bar">
-          <button class="cam-btn">📷</button>
-          <input type="text" placeholder="Search products...">
-        </div>
-        <button id="menu-btn">☰</button>
-      </div>
+  <!-- Navbar -->
+  <header class="navbar">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <h1 class="logo">DT</h1>
+    <nav class="nav-links">
+      <a href="#">Home</a>
+      <a href="#" onclick="showCategories()">Category</a>
+      <a href="#">Cart</a>
     </nav>
   </header>
 
-  <!-- Side Menu -->
-  <aside id="side-menu">
-    <button id="close-menu">×</button>
+  <!-- Search Bar -->
+  <section class="search-bar">
+    <button class="cam-btn">📷</button>
+    <input type="text" id="searchInput" placeholder="Search for products...">
+  </section>
 
-    <!-- User Profile -->
-    <div id="user-profile">
-      <img id="user-photo" src="assets/images/default-avatar.png" alt="User Photo" />
-      <h3 id="user-name">Guest</h3>
-    </div>
-
+  <!-- Category Section -->
+  <section id="categories" class="categories hidden">
+    <h2>Categories</h2>
     <ul>
-      <li><a href="profile.html">Account / Profile</a></li>
-      <li><a href="help.html">Help & Support</a></li>
-      <li><a href="tel:09036470778">Customer Service</a></li>
-      <li><a href="https://wa.me/234705470008">WhatsApp Support</a></li>
-      <li><a href="mailto:damitools@gmail.com">Gmail Support</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="app.html">📱 Get DamiTools App</a></li>
+      <li onclick="filterCategory('Phones')">Phones</li>
+      <li onclick="filterCategory('Laptops')">Laptops</li>
+      <li onclick="filterCategory('Accessories')">Accessories</li>
+      <li onclick="filterCategory('Appliances')">Appliances</li>
+      <li onclick="filterCategory('Tools')">Tools</li>
+      <li onclick="filterCategory('Others')">Others</li>
+    </ul>
+  </section>
+
+  <!-- Product Grid -->
+  <main>
+    <h2>Featured Products</h2>
+    <div id="product-grid" class="product-grid">
+      <!-- 200 Products will auto-load here from JS -->
+    </div>
+  </main>
+
+  <!-- Product Details Modal -->
+  <div id="product-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="product-detail"></div>
+    </div>
+  </div>
+
+  <!-- Side Menu -->
+  <aside id="side-menu" class="side-menu hidden">
+    <div class="profile">
+      <img src="assets/images/default-profile.png" alt="Profile" id="userPhoto">
+      <p id="userName">Guest</p>
+    </div>
+    <ul>
+      <li><a href="#" onclick="openAccount()">Account / Profile</a></li>
+      <li><a href="#">Help & Support</a></li>
+      <li><a href="tel:09036470778">Customer Service: 09036470778</a></li>
+      <li><a href="mailto:yourgmail@gmail.com">Email Us</a></li>
+      <li><a href="https://wa.me/234705470008">WhatsApp</a></li>
+      <li><a href="#">About Website</a></li>
     </ul>
   </aside>
 
-  <!-- Main -->
-  <main>
-    <section class="hero">
-      <h1>Welcome to DamiTools Electrical Gadgets</h1>
-      <p>Your one-stop shop for electronics & tools</p>
-    </section>
-
-    <!-- Categories -->
-    <section class="categories">
-      <h2>Shop by Category</h2>
-      <ul>
-        <li><a href="category-electronics.html">Electronics</a></li>
-        <li><a href="category-tools.html">Tools</a></li>
-        <li><a href="category-accessories.html">Accessories</a></li>
-        <li><a href="category-appliances.html">Home Appliances</a></li>
-      </ul>
-    </section>
-
-    <!-- Product Grid -->
-    <section class="products">
-      <h2>Featured Products</h2>
-      <div class="product-grid">
-        <div class="product-card" onclick="openProduct('Electric Drill')">
-          <img src="assets/images/drill.jpg" alt="Electric Drill">
-          <h3>Electric Drill</h3>
-          <p>₦15,000</p>
-        </div>
-        <div class="product-card" onclick="openProduct('Smart Bulb')">
-          <img src="assets/images/bulb.jpg" alt="Smart Bulb">
-          <h3>Smart Bulb</h3>
-          <p>₦5,000</p>
-        </div>
-        <div class="product-card" onclick="openProduct('Power Bank')">
-          <img src="assets/images/powerbank.jpg" alt="Power Bank">
-          <h3>Power Bank</h3>
-          <p>₦12,000</p>
-        </div>
-      </div>
-    </section>
-  </main>
+  <!-- DamiTools App Button -->
+  <section class="app-download">
+    <a href="YOUR_EXPO_APP_LINK_HERE" class="btn">📲 Download DamiTools App</a>
+  </section>
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2025 DamiTools. All rights reserved.</p>
+    <p>© 2025 DamiTools. All rights reserved.</p>
+    <p>Free delivery above ₦20,000 | Safe Payments | 24/7 Support</p>
   </footer>
-
 </body>
 </html>
