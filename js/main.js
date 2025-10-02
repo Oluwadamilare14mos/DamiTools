@@ -379,6 +379,35 @@ function renderProducts(list = PRODUCTS) {
   renderCart(); // update cart UI
 }
 
+// ---------- PRODUCT RECOMMENDATION ----------
+function getRecommendations(product, count = 4) {
+  if (!product) return [];
+  const sameCat = PRODUCTS.filter(p => p.cat === product.cat && p.id !== product.id);
+  // random shuffle
+  for (let i = sameCat.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sameCat[i], sameCat[j]] = [sameCat[j], sameCat[i]];
+  }
+  return sameCat.slice(0, count);
+}
+
+function renderRecommendations(product) {
+  const recs = getRecommendations(product);
+  if (!recs.length) return "";
+  return `
+    <h4 style="margin-top:16px">You may also like</h4>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      ${recs.map(r => `
+        <div class="card" style="width:140px" onclick="openProductDetails(${r.id})">
+          <img src="${r.img}" style="width:100%;height:100px;object-fit:cover;border-radius:6px">
+          <div class="muted-small">${escapeHtml(r.name)}</div>
+          <div class="price">₦${Number(r.price).toLocaleString()}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
 // ---------- PRODUCT DETAILS PAGE (modal or new page) ----------
 const detailModalId = "detailModal";
 function openProductDetails(id) {
