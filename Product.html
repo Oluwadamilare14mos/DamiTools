@@ -1,0 +1,31 @@
+<!-- product.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product Details</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <button onclick="goBack()">← Back</button>
+    <h1>DamiTools</h1>
+  </header>
+
+  <main id="productDetails">
+    <img id="productImg" src="" alt="Product Image">
+    <h2 id="productName"></h2>
+    <p id="productPrice"></p>
+    <button onclick="addToCartFromDetails()">Add to Cart</button>
+  </main>
+
+  <script src="main.js"></script>
+  <script>
+    function addToCartFromDetails() {
+      const product = JSON.parse(localStorage.getItem("product"));
+      if (product) addToCart(product.id, product.name, product.price, product.img, 1);
+    }
+    loadProductDetails();
+  </script>
+</body>
+</html>
