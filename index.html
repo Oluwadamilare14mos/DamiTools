@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DamiTools - Home</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0e0f11;
+      color: #fff;
+    }
+    header {
+      background: #1c1f24;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      color: #00b4d8;
+      margin: 0;
+    }
+    .user-info {
+      font-size: 14px;
+    }
+    button {
+      background: #00b4d8;
+      border: none;
+      padding: 8px 12px;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0077b6;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 30px;
+    }
+    .card {
+      background: #1c1f24;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      text-align: center;
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .card h3 {
+      color: #00b4d8;
+      margin-top: 10px;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+      background: #1c1f24;
+      margin-top: 40px;
+    }
+    a {
+      color: #00b4d8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DamiTools</h1>
+    <div class="user-info">
+      <span id="userEmail">Loading...</span>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="products" id="productGrid">
+      <!-- Products will be loaded here -->
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 DamiTools. All Rights Reserved.</p>
+    <p><a href="https://damitools.web.app/download">Download DamiTools App</a></p>
+  </footer>
+
+  <!-- Firebase + Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+      authDomain: "damitools.firebaseapp.com",
+      projectId: "damitools",
+      storageBucket: "damitools.firebasestorage.app",
+      messagingSenderId: "875796385681",
+      appId: "1:875796385681:web:563ffc58665bdc94875430"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const userEmail = document.getElementById("userEmail");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const productGrid = document.getElementById("productGrid");
+
+    // Products list
+    const products = [
+      { name: "Cordless Drill", image: "https://images.unsplash.com/photo-1603808033192-082d95ef1b0b?auto=format&fit=crop&w=400&q=80" },
+      { name: "Screwdriver Set", image: "https://images.unsplash.com/photo-1595708505310-768dc2a3c4e9?auto=format&fit=crop&w=400&q=80" },
+      { name: "Voltage Tester", image: "https://images.unsplash.com/photo-1616628182508-f1cc7c1a6d14?auto=format&fit=crop&w=400&q=80" },
+      { name: "Wire Stripper", image: "https://images.unsplash.com/photo-1592078615290-25bdfa52c838?auto=format&fit=crop&w=400&q=80" },
+      { name: "Electric Saw", image: "https://images.unsplash.com/photo-1603808033192-082d95ef1b0b?auto=format&fit=crop&w=400&q=80" },
+      { name: "Soldering Iron", image: "https://images.unsplash.com/photo-1604147493112-76f12b8e8f3d?auto=format&fit=crop&w=400&q=80" },
+      { name: "Cable Tester", image: "https://images.unsplash.com/photo-1600359733778-194cf02aa3d3?auto=format&fit=crop&w=400&q=80" },
+      { name: "Hammer Drill", image: "https://images.unsplash.com/photo-1605514581755-466e9da1667a?auto=format&fit=crop&w=400&q=80" },
+    ];
+
+    // Display products
+    products.forEach(p => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.innerHTML = `
+        <img src="${p.image}" alt="${p.name}">
+        <h3>${p.name}</h3>
+      `;
+      productGrid.appendChild(card);
+    });
+
+    // Firebase user detection
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userEmail.textContent = user.email;
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>
