@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DamiTools - Login</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100vh;
+      background: #0e0f11;
+      color: #fff;
+    }
+    .left {
+      background: url('https://images.unsplash.com/photo-1581091012184-5c1f89c7b6f5?auto=format&fit=crop&w=600&q=80') center/cover;
+    }
+    .right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+    }
+    .card {
+      background: #1c1f24;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.1);
+      width: 100%;
+      max-width: 350px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00b4d8;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 6px;
+      background: #2a2d31;
+      color: #fff;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #00b4d8;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #0077b6;
+    }
+    .link {
+      color: #00b4d8;
+      text-align: center;
+      cursor: pointer;
+      margin-top: 10px;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+      .left {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="left"></div>
+  <div class="right">
+    <div class="card">
+      <h2>Login to DamiTools</h2>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <div class="link" id="signupLink">Create Account</div>
+      <div class="link" id="resetLink">Forgot Password?</div>
+    </div>
+  </div>
+
+  <!-- Firebase + Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+      authDomain: "damitools.firebaseapp.com",
+      projectId: "damitools",
+      storageBucket: "damitools.firebasestorage.app",
+      messagingSenderId: "875796385681",
+      appId: "1:875796385681:web:563ffc58665bdc94875430"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login successful!");
+        window.location.href = "index.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    document.getElementById("signupLink").addEventListener("click", async () => {
+      const email = prompt("Enter email:");
+      const password = prompt("Enter new password:");
+      if (email && password) {
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+          alert("Account created! Please log in.");
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    });
+
+    document.getElementById("resetLink").addEventListener("click", async () => {
+      const email = prompt("Enter your email to reset password:");
+      if (email) {
+        try {
+          await sendPasswordResetEmail(auth, email);
+          alert("Password reset link sent!");
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
