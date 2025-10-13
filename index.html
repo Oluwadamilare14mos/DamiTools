@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DamiTools — Electricals • Lighting • Gadgets</title>
+<meta name="description" content="DamiTools - electrical tools, lighting, gadgets. Download app / shop online." />
+<style>
+  /* --- Basic layout & theme --- */
+  :root{ --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666; --brand:#2563eb; --accent:#10b981; --danger:#ef4444; }
+  [data-theme="dark"]{ --bg:#0f1115; --card:#151922; --text:#e8e8e8; --muted:#9aa0ad; --brand:#3b82f6; --accent:#22c55e; --danger:#f87171; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+
+  /* header */
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;z-index:40}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#fff;font-weight:900;font-size:18px}
+  .brand h1{font-size:16px;margin:0}
+  .navlinks{display:flex;gap:12px;align-items:center}
+  .navlinks a{padding:8px 12px;border-radius:8px;color:var(--text);font-weight:700}
+  .navlinks a.active{background:var(--brand);color:#fff}
+
+  /* toolbar / search */
+  .toolbar{display:flex;gap:12px;align-items:center;padding:12px; background:transparent}
+  .search{flex:1;display:flex;gap:8px;max-width:900px;margin:0 auto}
+  .search input{flex:1;padding:10px 12px;border-radius:999px;border:1px solid #e6e6e6;background:var(--card);outline:none}
+  .iconbtn{background:transparent;border:1px solid #e6e6e6;padding:8px 10px;border-radius:8px;cursor:pointer}
+
+  /* layout */
+  main{padding:12px;max-width:1200px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:900px){ .grid{grid-template-columns:repeat(2,1fr);} }
+  @media(min-width:1200px){ .grid{grid-template-columns:repeat(2,1fr);} }
+  .card{background:var(--card);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(0,0,0,0.05)}
+  .card .imgwrap{height:220px;background:#f0f0f0;display:flex;align-items:center;justify-content:center}
+  .card img{width:100%;height:100%;object-fit:cover;display:block}
+  .card .info{padding:10px;display:flex;flex-direction:column;gap:8px}
+  .title{font-size:15px;font-weight:700}
+  .muted{color:var(--muted);font-size:13px}
+  .price{color:var(--accent);font-weight:800}
+  .card .actions{display:flex;gap:8px;margin-top:auto}
+  .btn{padding:10px;border-radius:8px;border:none;background:var(--brand);color:#fff;cursor:pointer;flex:1}
+  .btn-outline{padding:10px;border-radius:8px;border:1px solid var(--brand);background:transparent;color:var(--brand);cursor:pointer;flex:1}
+
+  /* right side menu panel */
+  .menu-panel{position:fixed;right:-360px;top:0;width:360px;height:100%;background:var(--card);box-shadow:-8px 0 30px rgba(0,0,0,0.12);transition:right .28s;z-index:80;padding:16px;overflow:auto}
+  .menu-panel.open{right:0}
+  .menu-avatar{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(0,0,0,0.06)}
+  .menu-avatar img{width:64px;height:64px;border-radius:50%;object-fit:cover;cursor:pointer}
+  .menu-list{list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:8px}
+  .menu-list a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:var(--text);border:1px solid rgba(0,0,0,0.04)}
+  .small{font-size:13px;color:var(--muted)}
+
+  /* modal detail */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:90}
+  .modal-backdrop.open{display:flex}
+  .modal{background:var(--card);width:min(920px,95%);border-radius:12px;padding:14px;max-height:90vh;overflow:auto}
+  .modal .thumbs{display:flex;gap:8px;margin-top:8px}
+  .thumbs img{width:120px;height:80px;object-fit:cover;border-radius:8px;cursor:pointer}
+
+  /* cart / checkout panel */
+  .cart-panel{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--card);padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.12);display:flex;gap:10px;align-items:center;z-index:70}
+  .cart-count{background:var(--danger);color:#fff;padding:6px 8px;border-radius:999px;font-weight:700;margin-left:6px}
+
+  /* categories modal */
+  .cat-modal{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--card);padding:12px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);z-index:100;display:none}
+  .cat-modal.open{display:block}
+  .cat-list{display:flex;gap:8px;flex-wrap:wrap}
+  .cat-item{padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);cursor:pointer}
+
+  /* footer */
+  footer{padding:18px;text-align:center;background:var(--card);margin-top:24px;border-top:1px solid rgba(0,0,0,0.04)}
+  .footer-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;color:var(--muted)}
+
+  /* small utilities */
+  .muted-small{font-size:13px;color:var(--muted)}
+  .hidden{display:none}
+  .badge{background:#ffd; padding:4px 8px;border-radius:999px;font-weight:700}
+  .input-file{display:none}
+  .avatar-edit{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+</style>
+</head>
+<body data-theme="light">
+  <!-- header -->
+  <header>
+    <div class="brand">
+      <div class="logo">DT</div>
+      <div>
+        <h1 style="margin:0;font-size:16px">DamiTools</h1>
+        <div class="muted-small">Electricals • Lighting • Gadgets</div>
+      </div>
+    </div>
+
+    <div class="navlinks" aria-label="Main navigation">
+      <a href="index.html" id="navHome" class="active">Home</a>
+      <a href="#" id="navCategories">Categories</a>
+      <a href="#" id="navCart">Cart <span id="miniCartCount" class="cart-count" style="display:inline-block;margin-left:6px">0</span></a>
+      <button type="button" class="iconbtn" id="openMenuBtn" title="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- categories floating -->
+  <div id="catModal" class="cat-modal" role="dialog" aria-modal="false" aria-hidden="true">
+    <strong>Categories</strong>
+    <div style="margin-top:8px" class="cat-list" id="catList"></div>
+  </div>
+
+  <!-- search / toolbar -->
+  <div class="toolbar">
+    <div class="search" style="width:100%">
+      <input id="searchInput" placeholder="Search products (e.g. wire, switch, fan)" />
+      <button type="button" class="iconbtn" id="cameraBtn" title="Search by photo">📷</button>
+    </div>
+  </div>
+
+  <!-- main -->
+  <main>
+    <!-- hero -->
+    <section style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <h2 style="margin:6px 0 8px">Shop top electrical tools & gadgets</h2>
+        <p class="muted-small">Fast delivery • Safe payment • 24/7 support</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a id="downloadAppBtn" href="https://expo.dev/accounts/oluwadamiloremose/projects/DamiTools/builds/dae29279-7512-4ffc-b646-686c42152592" target="_blank" rel="noopener noreferrer" class="btn">📥 Download DT App</a>
+        <button type="button" id="openCartBtn" class="btn-outline">Open Cart</button>
+      </div>
+    </section>
+
+    <!-- product grid -->
+    <section>
+      <div id="productGrid" class="grid" aria-live="polite"></div>
+    </section>
+
+    <!-- placeholder for empty state -->
+    <div id="emptyState" class="muted" style="text-align:center;padding:24px;display:none">No products</div>
+
+    <footer>
+      <div class="footer-links">
+        <a href="mailto:damitools14@gmail.com">Email</a>
+        <a href="tel:09036470778">Customer Service: 09036470778</a>
+        <a id="whatsappLink" href="https://wa.me/2347054700008" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <a href="login.html">Login</a>
+        <a href="https://twitter.com/DamiTools14" target="_blank" rel="noopener noreferrer">Twitter</a>
+        <a href="https://instagram.com/damitools.ng" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://m.facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a>
+      </div>
+      <div style="margin-top:8px" class="muted-small">© 2025 DamiTools — Free delivery above ₦20,000</div>
+    </footer>
+  </main>
+
+  <!-- menu panel -->
+  <aside id="menuPanel" class="menu-panel" aria-hidden="true">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong>Menu</strong>
+      <button type="button" id="closeMenuBtn" class="iconbtn">✕</button>
+    </div>
+
+    <div class="menu-avatar" style="margin-top:12px">
+      <img id="menuAvatarImg" src="https://i.imgur.com/6VBx3io.png" alt="avatar" />
+      <div>
+        <div id="menuAvatarName" style="font-weight:800">Guest</div>
+        <div class="muted-small" id="menuAvatarEmail">damitools14@gmail.com</div>
+      </div>
+    </div>
+
+    <!-- Avatar edit area -->
+    <div id="avatarEdit" class="avatar-edit" style="display:none">
+      <label style="font-size:13px">Change profile photo</label>
+      <input id="fileInput" class="input-file" type="file" accept="image/*" capture="environment" />
+      <div style="display:flex;gap:8px">
+        <button type="button" id="uploadBtn" class="btn-outline">Choose photo</button>
+        <button type="button" id="takePhotoBtn" class="btn">Use camera</button>
+      </div>
+      <div id="avatarPreview" style="margin-top:8px"></div>
+    </div>
+
+    <ul class="menu-list">
+      <li><a href="#" id="menuProfile">Account / Profile</a></li>
+      <li><a href="#" id="menuSupport">Help & Support</a></li>
+      <li><a href="tel:09036470778">Customer Service: 09036470778</a></li>
+      <li><a href="mailto:damitools14@gmail.com">Email Us</a></li>
+      <li><a id="menuWhats" href="https://wa.me/2347054700008" target="_blank" rel="noopener noreferrer">WhatsApp: 07054700008</a></li>
+      <li><a href="#" id="menuAbout">About Website</a></li>
+      <li><a id="menuDownload" href="https://expo.dev/accounts/oluwadamiloremose/projects/DamiTools/builds/dae29279-7512-4ffc-b646-686c42152592" target="_blank" rel="noopener noreferrer">📥 Download DamiTools App</a></li>
+      <li><a href="#" id="signOutBtn" style="color:var(--danger)">Sign out</a></li>
+    </ul>
+
+    <div style="margin-top:12px">
+      <div class="muted-small">Theme</div>
+      <button type="button" id="themeToggle" class="iconbtn" style="margin-top:6px">Toggle Dark</button>
+    </div>
+  </aside>
+
+  <!-- about modal -->
+  <div id="aboutModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>About DamiTools</h3>
+      <p class="muted-small">DamiTools is an online store for electricals, lighting, gadgets and accessories. Download the DamiTools app from the menu or buy from the site. Customer support: 09036470778 — damitools14@gmail.com</p>
+      <div style="text-align:right;margin-top:12px">
+        <button type="button" id="closeAboutBtn" class="iconbtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- product detail modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal" id="productModal">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="width:320px">
+          <img id="detailMainImg" src="" alt="product" style="width:100%;height:320px;object-fit:cover;border-radius:8px" />
+          <div class="thumbs" id="detailThumbs"></div>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <h3 id="detailName" style="margin:0 0 6px"></h3>
+          <div class="muted-small" id="detailCat"></div>
+          <div style="margin:8px 0" class="price" id="detailPrice"></div>
+          <p id="detailDesc" class="muted-small">Product description...</p>
+
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+            <input id="detailQty" type="number" value="1" min="1" style="width:86px;padding:8px;border-radius:8px;border:1px solid #e6e6e6" />
+            <button type="button" id="detailAddBtn" class="btn">Add to Cart</button>
+            <button type="button" id="detailAppBtn" class="btn-outline">Open in App / APK</button>
+          </div>
+          <div style="margin-top:12px" id="similarWrap"></div>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:12px">
+        <button type="button" id="closeModalBtn" class="iconbtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- cart / checkout panel (mini) -->
+  <div class="cart-panel" id="floatingCart">
+    <div>
+      <strong>Cart</strong>
+      <div class="muted-small" style="font-size:12px">Items: <span id="cartCount">0</span></div>
+    </div>
+    <div style="min-width:140px;text-align:right">
+      <div class="muted-small">Total</div>
+      <div id="cartTotal" style="font-weight:800">₦0</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="button" id="goToCartBtn" class="btn-outline">View</button>
+      <button type="button" id="checkoutPanelBtn" class="btn">Checkout</button>
+    </div>
+  </div>
+
+  <!-- Firebase + storage -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+  <script>
+  /******************************************************************
+   * Firebase config (your project)
+   ******************************************************************/
+  const firebaseConfig = {
+    apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+    authDomain: "damitools.firebaseapp.com",
+    projectId: "damitools",
+    storageBucket: "damitools.firebasestorage.app",
+    messagingSenderId: "875796385681",
+    appId: "1:875796385681:web:563ffc58665bdc94875430"
+  };
+  try { firebase.initializeApp(firebaseConfig); console.log("Firebase initialized"); }
+  catch(e){ console.warn("Firebase init error", e); }
+
+  const auth = firebase.auth ? firebase.auth() : null;
+  const db = firebase.firestore ? firebase.firestore() : null;
+  const storage = firebase.storage ? firebase.storage() : null;
+
+  /* ===========
+     App state
+     =========== */
+  const STATE = {
+    products: [],
+    cart: JSON.parse(localStorage.getItem("damitools_cart")||"[]"),
+    currentProduct: null,
+    categories: ["All","Lighting","Switches & Sockets","Wires & Cables","Electrical Tools","DFB & Protection","Conduit & Boxes","Power & Supply","Gadgets","Solar & Outdoor","Accessories","Misc","Fans","Phones","Tablets"]
+  };
+
+  function saveCart(){ localStorage.setItem("damitools_cart", JSON.stringify(STATE.cart)); renderCart(); }
+
+  function toast(msg, t=1600){
+    const el=document.createElement('div'); el.innerText=msg;
+    Object.assign(el.style,{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'24px',background:'rgba(0,0,0,0.8)',color:'#fff',padding:'10px 14px',borderRadius:'8px',zIndex:99999});
+    document.body.appendChild(el); setTimeout(()=>el.remove(),t);
+  }
+
+  /* ============================
+     PRODUCTS: base + programmatic expansion with online images
+     ============================ */
+  const PRODUCTS_BASE = [
+    {id:1,  name:"18W POP Light", price:2500, cat:"Lighting"},
+    {id:2,  name:"12W POP Light", price:1800, cat:"Lighting"},
+    {id:3,  name:"6W POP Light",  price:1200, cat:"Lighting"},
+    {id:4,  name:"30W POP Light", price:4200, cat:"Lighting"},
+    {id:5,  name:"Chandelier (Modern)", price:35000, cat:"Lighting"},
+    {id:6,  name:"Dropping Light (3-Head)", price:22000, cat:"Lighting"},
+    {id:7,  name:"Lamp Holder", price:800, cat:"Lighting"},
+    {id:8,  name:"LED Spotlight", price:3000, cat:"Lighting"},
+    {id:9,  name:"Bulkhead 18W", price:4500, cat:"Lighting"},
+    {id:10, name:"Bulkhead 24W", price:6200, cat:"Lighting"},
+    {id:11, name:"Garden Light 18W", price:12000, cat:"Lighting"},
+    {id:12, name:"Garden Light 24W", price:15000, cat:"Lighting"},
+    {id:13, name:"LED Half-Moon", price:4800, cat:"Lighting"},
+    {id:20, name:"1-Gang Switch", price:1200, cat:"Switches & Sockets"},
+    {id:21, name:"2-Gang Switch", price:1800, cat:"Switches & Sockets"},
+    {id:22, name:"3-Gang Switch", price:2400, cat:"Switches & Sockets"},
+    {id:23, name:"4-Gang Switch", price:3000, cat:"Switches & Sockets"},
+    {id:24, name:"13A Single Socket", price:2200, cat:"Switches & Sockets"},
+    {id:25, name:"13A Double Socket", price:3200, cat:"Switches & Sockets"},
+    {id:26, name:"15A Socket", price:3500, cat:"Switches & Sockets"},
+    {id:27, name:"Water Heater Switch 20A", price:4200, cat:"Switches & Sockets"},
+    {id:28, name:"Water Heater Switch 45A", price:6500, cat:"Switches & Sockets"},
+    {id:29, name:"Cooker Unit", price:9000, cat:"Switches & Sockets"},
+    {id:40, name:"1mm Wire", price:3800, cat:"Wires & Cables"},
+    {id:41, name:"1.5mm Wire", price:4500, cat:"Wires & Cables"},
+    {id:42, name:"2.5mm Wire", price:7800, cat:"Wires & Cables"},
+    {id:43, name:"4mm Wire", price:11500, cat:"Wires & Cables"},
+    {id:44, name:"6mm Wire", price:16500, cat:"Wires & Cables"},
+    {id:45, name:"10mm Wire", price:24500, cat:"Wires & Cables"},
+    {id:60, name:"Knife Switch", price:2500, cat:"Electrical Tools"},
+    {id:61, name:"Fuse & Base", price:1200, cat:"Electrical Tools"},
+    {id:70, name:"DFB Single Phase", price:18500, cat:"DFB & Protection"},
+    {id:80, name:"25mm PVC Pipe", price:1500, cat:"Conduit & Boxes"},
+    {id:90, name:"60W Power Supply", price:8500, cat:"Power & Supply"},
+    {id:100,name:"Solar Light 100W", price:25000, cat:"Solar & Outdoor"},
+    {id:120,name:"Power Bank 20,000mAh", price:12000, cat:"Gadgets"},
+    {id:140,name:"Black Tape", price:500, cat:"Accessories"},
+  ];
+
+  (function buildFullProductList(){
+    const out = PRODUCTS_BASE.map(p => ({ ...p }));
+    const brands = ["Generic","Proline","SunBright","ElectroMax","Lumina","PowerCore","SafeLine","Apex","Nova","GlobalTech"];
+    let nextId = Math.max(...out.map(x=>x.id)) + 1;
+    function qstr(s){ return encodeURIComponent(String(s).replace(/\s+/g,' ').trim()); }
+    out.forEach(p=>{
+      const main = (p.name.split(/[()\-–,]/)[0].split(' ')[0] || p.name).replace(/[^a-zA-Z0-9 ]/g,'').trim();
+      // use Unsplash query for relevant images
+      p.img = `https://source.unsplash.com/800x600/?${qstr(p.name + ' ' + main)}`;
+    });
+    // expand to ~220 items
+    const namesPool = out.map(x => ({ k: (x.name.replace(/[^a-zA-Z0-9 ]/g,'').split(' ')[0] || 'item'), cat: x.cat }));
+    let i = 0;
+    while(out.length < 220){
+      const base = namesPool[i % namesPool.length];
+      const brand = brands[i % brands.length];
+      const nm = `${base.k} ${brand}`;
+      const cat = base.cat || "Misc";
+      const price = Math.max(150, Math.round(800 + Math.random()*75000));
+      const img = `https://source.unsplash.com/800x600/?${qstr(base.k + ' ' + brand)}`;
+      out.push({ id: nextId++, name: nm, price, cat, img });
+      i++;
+    }
+    STATE.products = out;
+    window.PRODUCTS = out;
+    console.log("Loaded products:", STATE.products.length);
+  })();
+
+  /* ============================
+     Render products
+     ============================ */
+  const productGrid = document.getElementById("productGrid");
+  function createCard(p){
+    const div = document.createElement('div'); div.className='card';
+    div.innerHTML = `
+      <div class="imgwrap"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.src='https://i.imgur.com/6VBx3io.png'"></div>
+      <div class="info">
+        <div class="title">${escapeHtml(p.name)}</div>
+        <div class="muted">${escapeHtml(p.cat)}</div>
+        <div class="price">₦${Number(p.price).toLocaleString()}</div>
+        <div class="actions">
+          <button type="button" class="btn" data-add="${p.id}">Add to Cart</button>
+          <button type="button" class="btn-outline" data-details="${p.id}">Details</button>
+        </div>
+      </div>`;
+    return div;
+  }
+
+  function renderProducts(list = STATE.products){
+    productGrid.innerHTML = '';
+    if(!list.length){ document.getElementById('emptyState').style.display='block'; return; }
+    document.getElementById('emptyState').style.display='none';
+    for(const p of list) productGrid.appendChild(createCard(p));
+    // attach delegates
+    productGrid.querySelectorAll('[data-add]').forEach(btn=>{
+      btn.onclick = ()=>{ const id = +btn.dataset.add; addToCartById(id); };
+    });
+    productGrid.querySelectorAll('[data-details]').forEach(btn=>{
+      btn.onclick = ()=>{ const id = +btn.dataset.details; openProductModalById(id); };
+    });
+  }
+
+  /* ============================
+     Product Detail Modal
+     ============================ */
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const detailMainImg = document.getElementById('detailMainImg');
+  const detailName = document.getElementById('detailName');
+  const detailCat = document.getElementById('detailCat');
+  const detailPrice = document.getElementById('detailPrice');
+  const detailDesc = document.getElementById('detailDesc');
+  const detailThumbs = document.getElementById('detailThumbs');
+  const detailAddBtn = document.getElementById('detailAddBtn');
+  const detailQty = document.getElementById('detailQty');
+  const detailAppBtn = document.getElementById('detailAppBtn');
+
+  function openProductModalById(id){
+    const p = STATE.products.find(x=>x.id===id); if(!p) return;
+    STATE.currentProduct = p;
+    detailMainImg.src = p.img;
+    detailName.innerText = p.name;
+    detailCat.innerText = p.cat;
+    detailPrice.innerText = '₦' + Number(p.price).toLocaleString();
+    detailDesc.innerText = `High-quality ${p.name}. For bulk orders contact customer care.`;
+    detailThumbs.innerHTML = '';
+    const imgs = [p.img, p.img + '&sig=1', p.img + '&sig=2'];
+    imgs.forEach(src=>{
+      const im = document.createElement('img'); im.src = src; im.onclick = ()=> detailMainImg.src = src;
+      detailThumbs.appendChild(im);
+    });
+    detailQty.value = 1;
+    showModal(modalBackdrop);
+    detailAddBtn.style.display = '';
+  }
+  document.getElementById('closeModalBtn').onclick = ()=> hideModal(modalBackdrop);
+  modalBackdrop.onclick = (e)=> { if(e.target === modalBackdrop) hideModal(modalBackdrop); };
+
+  detailAddBtn.onclick = ()=>{
+    const q = Math.max(1, parseInt(detailQty.value||1));
+    addToCartById(STATE.currentProduct.id, q);
+    hideModal(modalBackdrop);
+  };
+  detailAppBtn.onclick = ()=> openAppOrApk(STATE.currentProduct.id);
+
+  /* ============================
+     Cart functions
+     ============================ */
+  function addToCartById(id, qty=1){
+    const p = STATE.products.find(x=>x.id===id); if(!p) return;
+    const existing = STATE.cart.find(x=>x.id===id);
+    if(existing) existing.qty = Math.min(999, existing.qty + qty);
+    else STATE.cart.push({...p, qty});
+    saveCart(); toast(`${p.name} added to cart`);
+  }
+
+  function renderCart(){
+    const cartCount = STATE.cart.reduce((s,i)=>s+i.qty,0);
+    document.getElementById('cartCount').innerText = cartCount;
+    document.getElementById('miniCartCount').innerText = cartCount;
+    const total = STATE.cart.reduce((s,i)=>s + i.price * i.qty, 0);
+    document.getElementById('cartTotal').innerText = '₦' + total.toLocaleString();
+  }
+
+  // open cart / checkout panel
+  document.getElementById('openCartBtn').onclick = ()=> openCartView();
+  document.getElementById('openMenuBtn').onclick = ()=> toggleMenu(true);
+  document.getElementById('closeMenuBtn').onclick = ()=> toggleMenu(false);
+  document.getElementById('goToCartBtn').onclick = ()=> openCartView();
+  document.getElementById('checkoutPanelBtn').onclick = ()=> location.href = 'delivery.html';
+
+  function openCartView(){
+    let html = `<div style="padding:12px;max-height:70vh;overflow:auto">`;
+    if(!STATE.cart.length){ html += `<p class="muted-small">Cart is empty</p>`; }
+    for(const it of STATE.cart){
+      html += `<div style="display:flex;gap:10px;padding:8px;border-bottom:1px solid rgba(0,0,0,0.04);align-items:center">
+        <img src="${it.img}" style="width:72px;height:72px;object-fit:cover;border-radius:8px">
+        <div style="flex:1">
+          <div style="font-weight:700">${escapeHtml(it.name)}</div>
+          <div class="muted-small">${escapeHtml(it.cat)}</div>
+          <div style="margin-top:6px">₦${Number(it.price).toLocaleString()} × ${it.qty}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button type="button" class="iconbtn" onclick="window.__inc(${it.id})">+</button>
+          <button type="button" class="iconbtn" onclick="window.__dec(${it.id})">−</button>
+          <button type="button" class="iconbtn" onclick="window.__rm(${it.id})">Remove</button>
+        </div>
+      </div>`;
+    }
+    html += `<div style="margin-top:12px;text-align:right"><strong>Total:</strong> <span style="font-weight:800">₦${STATE.cart.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString()}</span></div>`;
+    html += `<div style="display:flex;gap:8px;margin-top:12px"><button id="checkoutCard" class="btn">Pay with Card</button><button id="checkoutBank" class="btn-outline">Pay with Bank</button><button id="checkoutCOD" class="btn-outline">Pay on Delivery</button></div>`;
+    html += `</div>`;
+    showModal(modalBackdrop);
+    const modalInner = document.getElementById('productModal');
+    modalInner.querySelector('#detailMainImg').src = '';
+    modalInner.querySelector('#detailName').innerText = 'Cart';
+    modalInner.querySelector('#detailCat').innerText = '';
+    modalInner.querySelector('#detailPrice').innerText = '';
+    modalInner.querySelector('#detailDesc').innerHTML = html;
+    modalInner.querySelector('#detailAddBtn').style.display='none';
+    setTimeout(()=>{
+      const cardBtn = modalInner.querySelector('#checkoutCard');
+      const bankBtn = modalInner.querySelector('#checkoutBank');
+      const codBtn = modalInner.querySelector('#checkoutCOD');
+      if(cardBtn) cardBtn.addEventListener('click', ()=> { hideModal(modalBackdrop); location.href='delivery.html'; });
+      if(bankBtn) bankBtn.addEventListener('click', ()=> checkoutBankDemo());
+      if(codBtn) codBtn.addEventListener('click', ()=> {
+        const total = STATE.cart.reduce((s,i)=>s+i.price*i.qty,0);
+        const ok = confirm(`Proceed to Pay on Delivery. Total: ₦${total.toLocaleString()}\nChoose OK to confirm your COD order.`);
+        if(ok){ placeOrder("COD"); }
+      });
+    }, 40);
+  }
+
+  // helpers
+  window.__inc = function(id){ const it=STATE.cart.find(x=>x.id===id); if(it){it.qty++; saveCart();} };
+  window.__dec = function(id){ const it=STATE.cart.find(x=>x.id===id); if(it){ it.qty=Math.max(1,it.qty-1); saveCart(); } };
+  window.__rm = function(id){ STATE.cart = STATE.cart.filter(x=>x.id!==id); saveCart(); };
+
+  function checkoutBankDemo(){
+    showModal(modalBackdrop);
+    const modalInner = document.getElementById('productModal');
+    modalInner.querySelector('#detailName').innerText = 'Bank Transfer (Demo)';
+    modalInner.querySelector('#detailDesc').innerHTML = `
+      <div style="padding:8px;">
+        <p class="muted-small">Bank transfers aren't integrated. Use the provided account details to make a transfer and then contact support.</p>
+        <div style="margin-top:8px" class="muted-small">
+          <div>Account: 0123456789</div>
+          <div>Bank: Demo Bank</div>
+          <div>Account Name: DamiTools</div>
+          <div style="margin-top:8px"><button id="bankPayConfirm" class="btn">I transferred (Demo)</button></div>
+        </div>
+      </div>`;
+    setTimeout(()=> {
+      const conf = modalInner.querySelector('#bankPayConfirm');
+      if(conf) conf.onclick = ()=> placeOrder("Bank (demo)");
+    }, 30);
+  }
+
+  function placeOrder(method, deliveryInfo){
+    const total = STATE.cart.reduce((s,i)=>s+i.price*i.qty,0);
+    if(!STATE.cart.length){ toast("Cart empty"); return; }
+    const order = { id: Date.now(), items: STATE.cart, total, method, delivery:deliveryInfo||null, createdAt: new Date().toISOString()};
+    const ordersLocal = JSON.parse(localStorage.getItem("damitools_orders")||"[]"); ordersLocal.push(order); localStorage.setItem("damitools_orders", JSON.stringify(ordersLocal));
+    if(db){
+      try{
+        db.collection("orders").add({ total, items: order.items.map(i=>({id:i.id,name:i.name,qty:i.qty,price:i.price})), method, delivery: order.delivery || null, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .then(()=> toast("Order placed (cloud)"))
+          .catch(()=> toast("Order placed (saved locally)"));
+      }catch(e){
+        toast("Order placed (saved locally)");
+      }
+    } else toast("Order placed (saved locally)");
+    STATE.cart = []; saveCart();
+    hideModal(modalBackdrop);
+    setTimeout(()=> alert("Woohoo! Your order is on the move! Get ready — DamiTools got you covered 🚚🎉"), 200);
+  }
+
+  function openAppOrApk(productId){
+    const APK_LINK = "https://expo.dev/accounts/oluwadamiloremose/projects/DamiTools/builds/dae29279-7512-4ffc-b646-686c42152592";
+    try { const intent = `intent://product/${productId}#Intent;scheme=damitools;package=com.oluwadamilaremose.DamiTools;end`; window.location.href = intent; setTimeout(()=> window.open(APK_LINK, "_blank"), 900); }
+    catch(e){ window.open(APK_LINK, "_blank"); }
+  }
+
+  /* ============================
+     Search & UI bindings
+     ============================ */
+  const searchInput = document.getElementById('searchInput');
+  function debounce(fn, wait=220){ let t; return function(...a){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,a), wait); }; }
+  searchInput.addEventListener('input', debounce(()=> {
+    const q = searchInput.value.trim().toLowerCase();
+    if(!q) return renderProducts(STATE.products);
+    const filtered = STATE.products.filter(p=> (p.name+' '+(p.cat||'')).toLowerCase().includes(q));
+    renderProducts(filtered);
+  }, 180));
+
+  // camera button: open file picker for now
+  document.getElementById('cameraBtn').addEventListener('click', ()=> {
+    const fi = document.createElement('input'); fi.type='file'; fi.accept='image/*'; fi.capture='environment';
+    fi.onchange = ()=> {
+      const f = fi.files && fi.files[0];
+      if(!f) return;
+      toast("Photo selected — image search coming soon.");
+      const url = URL.createObjectURL(f);
+      const w = window.open("");
+      if(w){ w.document.write(`<img src="${url}" style="max-width:100%"><p style="font-family:system-ui">Image selected — image search coming soon.</p>`); }
+    };
+    fi.click();
+  });
+
+  // theme toggle
+  document.getElementById('themeToggle')?.addEventListener('click', ()=> {
+    const cur = document.body.getAttribute('data-theme'); const next = cur==='dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', next); localStorage.setItem('damitools_theme', next);
+  });
+
+  // menu profile & signout
+  document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+    if(auth){
+      try{ await auth.signOut(); toast('Signed out'); updateProfileUI(null); } catch(e){ console.warn(e); }
+    } else { toast('Signed out (local)'); updateProfileUI(null); }
+  });
+
+  function toggleMenu(open){ const el = document.getElementById('menuPanel'); if(open){ el.classList.add('open'); document.getElementById('avatarEdit').style.display='block'; } else { el.classList.remove('open'); document.getElementById('avatarEdit').style.display='none'; } }
+
+  document.getElementById('menuSupport').addEventListener('click', ()=> {
+    alert('Help & Support\nCall: 09036470778\nWhatsApp: 07054700008\nEmail: damitools14@gmail.com');
+  });
+
+  document.getElementById('menuProfile').addEventListener('click', ()=> { window.location.href = 'login.html'; });
+
+  document.getElementById('menuAbout').addEventListener('click', (e)=> { e.preventDefault(); showModal(document.getElementById('aboutModal')); });
+  document.getElementById('closeAboutBtn').addEventListener('click', ()=> hideModal(document.getElementById('aboutModal')) );
+
+  document.getElementById('navCart').addEventListener('click',(e)=>{ e.preventDefault(); openCartView(); });
+  document.getElementById('navCategories').addEventListener('click',(e)=>{ e.preventDefault(); toggleCategories(); });
+
+  function toggleCategories(){
+    const el = document.getElementById('catModal');
+    if(el.classList.contains('open')){ el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
+    else { renderCategoryList(); el.classList.add('open'); el.setAttribute('aria-hidden','false'); }
+  }
+
+  function renderCategoryList(){
+    const container = document.getElementById('catList'); container.innerHTML = '';
+    const cats = STATE.categories;
+    cats.forEach(cat=>{
+      const b = document.createElement('div'); b.className = 'cat-item'; b.innerText = cat;
+      b.onclick = ()=> {
+        document.getElementById('catModal').classList.remove('open'); document.getElementById('catModal').setAttribute('aria-hidden','true');
+        if(cat === 'All') renderProducts(); else { const filtered = STATE.products.filter(p => (p.cat||'').toLowerCase() === cat.toLowerCase()); renderProducts(filtered); }
+      };
+      container.appendChild(b);
+    });
+  }
+
+  // back button support (Android-like)
+  window.addEventListener('popstate', function(e){
+    if(modalBackdrop.classList.contains('open')){ modalBackdrop.classList.remove('open'); history.pushState({},''); }
+  });
+
+  // profile name helpers
+  function firstNameFromEmail(email){
+    if(!email) return '';
+    const name = email.split('@')[0];
+    const token = name.split(/[.\-_]/)[0];
+    return token.charAt(0).toUpperCase() + token.slice(1);
+  }
+  function safeName(user){
+    if(!user) return 'Guest';
+    if(user.displayName) return user.displayName.split(' ')[0];
+    if(user.email) return firstNameFromEmail(user.email);
+    return 'User';
+  }
+
+  function updateProfileUI(user){
+    const name = user ? safeName(user) : 'Guest';
+    const photo = user && user.photoURL ? user.photoURL : (localStorage.getItem('damitools_profile_photo') || 'https://i.imgur.com/6VBx3io.png');
+    document.getElementById('menuAvatarName').innerText = name;
+    // per your request, always show the fixed contact email in the menu
+    document.getElementById('menuAvatarEmail').innerText = 'damitools14@gmail.com';
+    document.getElementById('menuAvatarImg').src = photo;
+  }
+
+  // Firebase auth state across pages
+  if(auth){
+    auth.onAuthStateChanged(user=>{
+      if(user) updateProfileUI(user); else updateProfileUI(null);
+    });
+  } else updateProfileUI(null);
+
+  // Profile photo upload -> Firebase Storage then update auth profile
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const takePhotoBtn = document.getElementById('takePhotoBtn');
+  const avatarPreview = document.getElementById('avatarPreview');
+
+  uploadBtn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async (ev)=> {
+    const f = ev.target.files && ev.target.files[0]; if(!f) return; await uploadProfileImageFile(f);
+  });
+
+  takePhotoBtn.addEventListener('click', async ()=>{
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' } });
+        const w = window.open('', '_blank', 'width=420,height=380');
+        if(!w){ toast('Please allow popups to use camera'); return; }
+        w.document.title = 'Take photo — DamiTools'; w.document.body.style.margin='0'; w.document.body.style.fontFamily='system-ui';
+        const video = w.document.createElement('video'); video.autoplay=true; video.style.width='100%'; video.style.height='auto';
+        const btn = w.document.createElement('button'); btn.innerText='Capture'; btn.style.fontSize='16px'; btn.style.margin='8px';
+        w.document.body.appendChild(video); w.document.body.appendChild(btn);
+        video.srcObject = stream;
+        btn.onclick = ()=> {
+          const canvas = w.document.createElement('canvas'); canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+          const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+          canvas.toBlob(async (blob)=>{
+            await uploadProfileImageFile(new File([blob],'capture.jpg',{type:'image/jpeg'}));
+            stream.getTracks().forEach(t=>t.stop());
+            w.close();
+          }, 'image/jpeg', 0.9);
+        };
+      }catch(e){ toast('Camera unavailable or permission denied'); }
+    } else { fileInput.click(); }
+  });
+
+  async function uploadProfileImageFile(file){
+    avatarPreview.innerHTML = `<div style="width:100px;height:100px;border-radius:8px;overflow:hidden"><img src="${URL.createObjectURL(file)}" style="width:100%;height:100%;object-fit:cover"/></div>`;
+    if(!storage){
+      const url = URL.createObjectURL(file);
+      localStorage.setItem('damitools_profile_photo', url);
+      updateProfileUI(null);
+      toast('Profile photo saved locally (no Firebase storage)');
+      return;
+    }
+    toast('Uploading photo...');
+    try{
+      const uid = (auth && auth.currentUser && auth.currentUser.uid) ? auth.currentUser.uid : `guest_${Date.now()}`;
+      const path = `profile_photos/${uid}_${Date.now()}.jpg`;
+      const ref = storage.ref().child(path);
+      const snap = await ref.put(file);
+      const url = await snap.ref.getDownloadURL();
+      if(auth && auth.currentUser){
+        try{ await auth.currentUser.updateProfile({ photoURL: url }); } catch(e){ console.warn('updateProfile error', e); }
+      }
+      localStorage.setItem('damitools_profile_photo', url);
+      updateProfileUI(auth && auth.currentUser ? auth.currentUser : null);
+      toast('Profile photo uploaded');
+    }catch(e){ console.error(e); toast('Upload failed'); }
+  }
+
+  // escapeHtml helper
+  function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  /* Modal helpers & init */
+  function showModal(el){ el.classList.add('open'); el.setAttribute('aria-hidden','false'); const focusable = el.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'); if(focusable) focusable.focus(); }
+  function hideModal(el){ el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
+
+  document.addEventListener('keydown',(ev)=>{ if(ev.key==='Escape'){ hideModal(modalBackdrop); toggleMenu(false); hideModal(document.getElementById('aboutModal')); } });
+
+  /* Init */
+  (function init(){
+    const savedTheme = localStorage.getItem('damitools_theme'); if(savedTheme) document.body.setAttribute('data-theme', savedTheme);
+    renderProducts();
+    renderCart();
+    window.STATE = STATE;
+  })();
+  </script>
+</body>
+</html>
