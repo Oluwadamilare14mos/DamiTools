@@ -66,15 +66,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
   <script>
-  // ====== CONFIG - match your other pages ======
-  const firebaseConfig = {
-    apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
-    authDomain: "damitools.firebaseapp.com",
-    projectId: "damitools",
-    storageBucket: "damitools.appspot.com",
-    messagingSenderId: "875796385681",
-    appId: "1:875796385681:web:563ffc58665bdc94875430"
-  };
+  <script src="firebase-config.js"></script>
+<script>
+  const auth = firebase.auth();
+  const storage = firebase.storage();
 
   try { firebase.initializeApp(firebaseConfig); }
   catch(e){ console.warn('Firebase init error', e); }
