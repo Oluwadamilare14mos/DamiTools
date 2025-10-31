@@ -6,8 +6,14 @@
   <title>DamiTools — Account</title>
   <meta name="description" content="Your DamiTools profile" />
   <style>
-    :root{ --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666; --brand:#2563eb; --accent:#10b981; }
-    body{font-family:system-ui,Arial;margin:0;padding:20px;background:var(--bg);color:var(--text)}
+    :root {
+      --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666;
+      --brand:#2563eb; --accent:#10b981;
+    }
+    body {
+      font-family:system-ui,Arial;margin:0;padding:20px;
+      background:var(--bg);color:var(--text)
+    }
     .wrap{max-width:900px;margin:20px auto}
     .card{background:var(--card);padding:18px;border-radius:12px;border:1px solid rgba(0,0,0,0.06)}
     h1{margin:0 0 8px 0}
@@ -27,15 +33,13 @@
       <h1>Your profile</h1>
       <p class="muted">Manage your account details for DamiTools.</p>
 
-      <div id="notSignedIn" style="display:none" class="card" >
+      <div id="notSignedIn" style="display:none" class="card">
         <p class="muted">You are not signed in. <a href="login.html">Sign in</a> to access your profile.</p>
       </div>
 
       <div id="signedInArea" style="display:none">
         <div class="profile-row" style="margin-top:12px">
-          <div class="avatar" id="avatarWrap">
-            <!-- image inserted here -->
-          </div>
+          <div class="avatar" id="avatarWrap"></div>
 
           <div style="flex:1">
             <div style="display:flex;align-items:center;gap:12px">
@@ -55,236 +59,115 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Firebase compat libs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
-<!-- Load your Firebase config -->
-<script src="firebase-config.js"></script>
+  <!-- Firebase Config -->
+  <script src="firebase-config.js"></script>
 
-<script>
-  // Initialize Firebase safely
-  try {
-    firebase.initializeApp(firebaseConfig);
-    console.log("Firebase initialized on account page");
-  } catch(e){
-    console.warn("Firebase init error", e);
-  }
+  <script>
+    // Initialize Firebase
+    try { firebase.initializeApp(firebaseConfig); }
+    catch(e){ console.warn('Firebase init error', e); }
 
-  // Access Firebase services
-  const auth = firebase.auth();
-  const storage = firebase.storage();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
 
-  // === rest of your JS code below ===
-  const el = id => document.getElementById(id);
-  const show = (id) => el(id).style.display = '';
-  const hide = (id) => el(id).style.display = 'none';
+    // helpers
+    const el = id => document.getElementById(id);
+    const show = id => el(id).style.display = '';
+    const hide = id => el(id).style.display = 'none';
 
-  const avatarWrap = el('avatarWrap');
-  const displayNameEl = el('displayName');
-  const emailText = el('emailText');
-  const notSignedIn = el('notSignedIn');
-  const signedInArea = el('signedInArea');
-  const photoInput = el('photoInput');
-  const uploadBtn = el('uploadBtn');
-  const uploadStatus = el('uploadStatus');
-  const signOutBtn = el('signOutBtn');
+    const avatarWrap = el('avatarWrap');
+    const displayNameEl = el('displayName');
+    const emailText = el('emailText');
+    const notSignedIn = el('notSignedIn');
+    const signedInArea = el('signedInArea');
+    const photoInput = el('photoInput');
+    const uploadBtn = el('uploadBtn');
+    const uploadStatus = el('uploadStatus');
+    const signOutBtn = el('signOutBtn');
 
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      hide('signedInArea');
-      show('notSignedIn');
-      return;
+    auth.onAuthStateChanged(user=>{
+      if(!user){
+        hide('signedInArea');
+        show('notSignedIn');
+        return;
+      }
+      hide('notSignedIn');
+      show('signedInArea');
+
+      let rawName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      let firstName = rawName.split(/\s+/)[0];
+      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+      displayNameEl.textContent = firstName;
+      emailText.textContent = user.email || '';
+
+      renderAvatar(user.photoURL || null);
+    });
+
+    function renderAvatar(url){
+      avatarWrap.innerHTML = '';
+      if(url){
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'avatar';
+        avatarWrap.appendChild(img);
+      } else {
+        const span = document.createElement('div');
+        span.style.width = '100%';
+        span.style.height = '100%';
+        span.style.display = 'flex';
+        span.style.alignItems = 'center';
+        span.style.justifyContent = 'center';
+        span.style.fontSize = '28px';
+        span.style.color = '#666';
+        span.textContent = 'D';
+        avatarWrap.appendChild(span);
+      }
     }
-    hide('notSignedIn');
-    show('signedInArea');
 
-    let rawName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-    let firstName = rawName.split(/\s+/)[0];
-    firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-    displayNameEl.textContent = firstName;
-    emailText.textContent = user.email || '';
-    renderAvatar(user.photoURL || null);
-  });
+    signOutBtn.addEventListener('click', ()=>{
+      auth.signOut().then(()=> location.href = 'index.html');
+    });
 
-  function renderAvatar(url){
-    avatarWrap.innerHTML = '';
-    if(url){
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = 'avatar';
-      avatarWrap.appendChild(img);
-    } else {
-      const span = document.createElement('div');
-      span.style.width = '100%';
-      span.style.height = '100%';
-      span.style.display = 'flex';
-      span.style.alignItems = 'center';
-      span.style.justifyContent = 'center';
-      span.style.fontSize = '28px';
-      span.style.color = '#666';
-      span.textContent = 'D';
-      avatarWrap.appendChild(span);
-    }
-  }
+    uploadBtn.addEventListener('click', async ()=>{
+      if(!auth.currentUser){
+        alert('You must be signed in to upload a photo.');
+        return;
+      }
+      const file = photoInput.files[0];
+      if(!file){ alert('Choose an image file first.'); return; }
+      if(file.size > 2 * 1024 * 1024){ alert('Image too large. Max 2MB.'); return; }
 
-  signOutBtn.addEventListener('click', ()=>{
-    auth.signOut().then(()=> location.href = 'index.html');
-  });
+      uploadStatus.textContent = 'Uploading...';
+      uploadBtn.disabled = true;
 
-  uploadBtn.addEventListener('click', async ()=>{
-    if(!auth.currentUser){
-      alert('You must be signed in to upload a photo.');
-      return;
-    }
-    const file = photoInput.files[0];
-    if(!file){ alert('Choose an image file first.'); return; }
-    if(file.size > 2 * 1024 * 1024){ alert('Image too large. Max 2MB.'); return; }
+      try {
+        const uid = auth.currentUser.uid;
+        const ext = file.name.split('.').pop().toLowerCase();
+        const path = `profile_photos/${uid}.${ext}`;
+        const ref = storage.ref(path);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
 
-    uploadStatus.textContent = 'Uploading...';
-    uploadBtn.disabled = true;
-
-    try {
-      const uid = auth.currentUser.uid;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const ref = storage.ref(`profile_photos/${uid}.${ext}`);
-      await ref.put(file);
-      const url = await ref.getDownloadURL();
-      await auth.currentUser.updateProfile({ photoURL: url });
-      renderAvatar(url);
-      uploadStatus.textContent = 'Upload complete.';
-    } catch(err){
-      console.error(err);
-      alert('Upload failed. Try again.');
-      uploadStatus.textContent = 'Upload failed.';
-    } finally {
-      uploadBtn.disabled = false;
-      setTimeout(()=> uploadStatus.textContent = '', 3000);
-    }
-  });
-  </script>
-  
-  // helpers
-  const el = id => document.getElementById(id);
-  const show = (id) => el(id).style.display = '';
-  const hide = (id) => el(id).style.display = 'none';
-
-  // get UI nodes
-  const avatarWrap = el('avatarWrap');
-  const displayNameEl = el('displayName');
-  const emailText = el('emailText');
-  const notSignedIn = el('notSignedIn');
-  const signedInArea = el('signedInArea');
-  const photoInput = el('photoInput');
-  const uploadBtn = el('uploadBtn');
-  const uploadStatus = el('uploadStatus');
-  const signOutBtn = el('signOutBtn');
-
-  // When auth state changes, update UI
-  auth.onAuthStateChanged(user=>{
-    if(!user){
-      // not signed in
-      hide('signedInArea');
-      show('notSignedIn');
-      return;
-    }
-    // signed in
-    hide('notSignedIn');
-    show('signedInArea');
-
-    // Determine display name: prefer displayName, otherwise use first part of email
-    let rawName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-    // keep just first name token
-    let firstName = rawName.split(/\s+/)[0];
-    // Capitalize first letter
-    firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-    displayNameEl.textContent = firstName;
-    emailText.textContent = user.email || '';
-
-    // Avatar: prefer user.photoURL (Google), otherwise a placeholder
-    const photoURL = user.photoURL || null;
-
-    renderAvatar(photoURL);
-  });
-
-  // Render avatar element (safe)
-  function renderAvatar(url){
-    avatarWrap.innerHTML = '';
-    if(url){
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = 'avatar';
-      avatarWrap.appendChild(img);
-    } else {
-      // placeholder initial
-      const span = document.createElement('div');
-      span.style.width = '100%';
-      span.style.height = '100%';
-      span.style.display = 'flex';
-      span.style.alignItems = 'center';
-      span.style.justifyContent = 'center';
-      span.style.fontSize = '28px';
-      span.style.color = '#666';
-      span.textContent = 'D';
-      avatarWrap.appendChild(span);
-    }
-  }
-
-  // Sign out
-  signOutBtn.addEventListener('click', ()=>{
-    auth.signOut().then(()=> location.href = 'index.html');
-  });
-
-  // Upload photo flow
-  uploadBtn.addEventListener('click', async ()=>{
-    if(!auth.currentUser){
-      alert('You must be signed in to upload a photo.');
-      return;
-    }
-    const file = photoInput.files[0];
-    if(!file){ alert('Choose an image file first.'); return; }
-    if(file.size > 2 * 1024 * 1024){ alert('Image too large. Max 2MB.'); return; }
-
-    uploadStatus.textContent = 'Uploading...';
-    uploadBtn.disabled = true;
-
-    try {
-      const uid = auth.currentUser.uid;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const path = `profile_photos/${uid}.${ext}`;
-      const ref = storage.ref(path);
-      await ref.put(file);
-      const url = await ref.getDownloadURL();
-
-      // update user profile with new photoURL
-      await auth.currentUser.updateProfile({ photoURL: url });
-      renderAvatar(url);
-      uploadStatus.textContent = 'Upload complete.';
-    } catch(err){
-      console.error(err);
-      alert('Upload failed. Try again.');
-      uploadStatus.textContent = 'Upload failed.';
-    } finally {
-      uploadBtn.disabled = false;
-      setTimeout(()=> uploadStatus.textContent = '', 3000);
-    }
-  });
-
-  // Redirect to login if not signed in after small delay (so UI updates)
-  setTimeout(()=> {
-    const user = auth.currentUser;
-    if(!user){
-      // leave visible link to login page
-      // (already shown above)
-    }
-  }, 500);
-
+        await auth.currentUser.updateProfile({ photoURL: url });
+        renderAvatar(url);
+        uploadStatus.textContent = 'Upload complete.';
+      } catch(err){
+        console.error(err);
+        alert('Upload failed. Try again.');
+        uploadStatus.textContent = 'Upload failed.';
+      } finally {
+        uploadBtn.disabled = false;
+        setTimeout(()=> uploadStatus.textContent = '', 3000);
+      }
+    });
   </script>
 </body>
 </html>
