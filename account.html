@@ -60,23 +60,116 @@
   </div>
 
   <!-- Firebase compat libs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
-  <script>
-  <script src="firebase-config.js"></script>
+<!-- Load your Firebase config -->
+<script src="firebase-config.js"></script>
+
 <script>
+  // Initialize Firebase safely
+  try {
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized on account page");
+  } catch(e){
+    console.warn("Firebase init error", e);
+  }
+
+  // Access Firebase services
   const auth = firebase.auth();
   const storage = firebase.storage();
 
-  try { firebase.initializeApp(firebaseConfig); }
-  catch(e){ console.warn('Firebase init error', e); }
+  // === rest of your JS code below ===
+  const el = id => document.getElementById(id);
+  const show = (id) => el(id).style.display = '';
+  const hide = (id) => el(id).style.display = 'none';
 
-  const auth = firebase.auth();
-  const storage = firebase.storage();
+  const avatarWrap = el('avatarWrap');
+  const displayNameEl = el('displayName');
+  const emailText = el('emailText');
+  const notSignedIn = el('notSignedIn');
+  const signedInArea = el('signedInArea');
+  const photoInput = el('photoInput');
+  const uploadBtn = el('uploadBtn');
+  const uploadStatus = el('uploadStatus');
+  const signOutBtn = el('signOutBtn');
 
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      hide('signedInArea');
+      show('notSignedIn');
+      return;
+    }
+    hide('notSignedIn');
+    show('signedInArea');
+
+    let rawName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+    let firstName = rawName.split(/\s+/)[0];
+    firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+    displayNameEl.textContent = firstName;
+    emailText.textContent = user.email || '';
+    renderAvatar(user.photoURL || null);
+  });
+
+  function renderAvatar(url){
+    avatarWrap.innerHTML = '';
+    if(url){
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'avatar';
+      avatarWrap.appendChild(img);
+    } else {
+      const span = document.createElement('div');
+      span.style.width = '100%';
+      span.style.height = '100%';
+      span.style.display = 'flex';
+      span.style.alignItems = 'center';
+      span.style.justifyContent = 'center';
+      span.style.fontSize = '28px';
+      span.style.color = '#666';
+      span.textContent = 'D';
+      avatarWrap.appendChild(span);
+    }
+  }
+
+  signOutBtn.addEventListener('click', ()=>{
+    auth.signOut().then(()=> location.href = 'index.html');
+  });
+
+  uploadBtn.addEventListener('click', async ()=>{
+    if(!auth.currentUser){
+      alert('You must be signed in to upload a photo.');
+      return;
+    }
+    const file = photoInput.files[0];
+    if(!file){ alert('Choose an image file first.'); return; }
+    if(file.size > 2 * 1024 * 1024){ alert('Image too large. Max 2MB.'); return; }
+
+    uploadStatus.textContent = 'Uploading...';
+    uploadBtn.disabled = true;
+
+    try {
+      const uid = auth.currentUser.uid;
+      const ext = file.name.split('.').pop().toLowerCase();
+      const ref = storage.ref(`profile_photos/${uid}.${ext}`);
+      await ref.put(file);
+      const url = await ref.getDownloadURL();
+      await auth.currentUser.updateProfile({ photoURL: url });
+      renderAvatar(url);
+      uploadStatus.textContent = 'Upload complete.';
+    } catch(err){
+      console.error(err);
+      alert('Upload failed. Try again.');
+      uploadStatus.textContent = 'Upload failed.';
+    } finally {
+      uploadBtn.disabled = false;
+      setTimeout(()=> uploadStatus.textContent = '', 3000);
+    }
+  });
+  </script>
+  
   // helpers
   const el = id => document.getElementById(id);
   const show = (id) => el(id).style.display = '';
