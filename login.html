@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DamiTools — Login</title>
+  <meta name="description" content="Login to DamiTools to manage your tools and orders"/>
+  <style>
+    :root {
+      --bg:#0e0f11; --card:#16181d; --muted:#a1a1aa;
+      --brand:#00b4d8; --accent:#10b981; --danger:#ef4444;
+    }
+    body {
+      margin:0;
+      background:var(--bg);
+      font-family: system-ui, Arial;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+    .card {
+      background:var(--card);
+      padding:32px;
+      border-radius:16px;
+      width:90%;
+      max-width:400px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.5);
+      text-align:center;
+    }
+    h1 { margin-bottom:10px; }
+    p.muted { color:var(--muted); font-size:14px; margin-bottom:24px; }
+    input {
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:8px;
+      margin:8px 0;
+      background:#1f2229;
+      color:#fff;
+    }
+    button {
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      margin-top:10px;
+      transition:0.25s;
+    }
+    .btn-brand { background:var(--brand); color:#fff; }
+    .btn-brand:hover { background:#0090b3; }
+    .btn-phone { background:var(--accent); color:#fff; }
+    .btn-facebook { background:#1877f2; color:#fff; }
+    .divider {
+      margin:20px 0;
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      position:relative;
+    }
+    .divider span {
+      position:absolute;
+      top:-10px;
+      background:var(--card);
+      left:50%;
+      transform:translateX(-50%);
+      padding:0 10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    #recaptcha-container {
+      margin-top:10px;
+      display:none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Welcome back 👋</h1>
+    <p class="muted">Login to your DamiTools account</p>
+
+    <div id="emailLogin">
+      <input type="email" id="email" placeholder="Email address"/>
+      <input type="password" id="password" placeholder="Password"/>
+      <button class="btn-brand" id="loginBtn">Login</button>
+    </div>
+
+    <div class="divider"><span>OR</span></div>
+
+    <div id="phoneLogin">
+      <input type="tel" id="phoneNumber" placeholder="+2348123456789"/>
+      <div id="recaptcha-container"></div>
+      <button class="btn-phone" id="sendCodeBtn">Send Verification Code</button>
+      <input type="text" id="verifyCode" placeholder="Enter code" style="display:none;"/>
+      <button class="btn-accent" id="verifyBtn" style="display:none;">Verify & Login</button>
+    </div>
+
+    <div class="divider"><span>OR</span></div>
+
+    <button class="btn-facebook" id="facebookBtn">Continue with Facebook</button>
+
+    <p class="muted" style="margin-top:20px;">
+      Don’t have an account? <a href="signup.html" style="color:var(--brand)">Create one</a>
+    </p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // ✅ Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+      authDomain: "damitools.firebaseapp.com",
+      projectId: "damitools",
+      storageBucket: "damitools.firebasestorage.app",
+      messagingSenderId: "875796385681",
+      appId: "1:875796385681:web:563ffc58665bdc94875430"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // ✅ Email login
+    document.getElementById("loginBtn").onclick = async () => {
+      const email = emailInput.value;
+      const pass = passwordInput.value;
+      if (!email || !pass) return alert("Enter email and password");
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        window.location.href = "account.html";
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // ✅ Phone login
+    const phoneBtn = document.getElementById("sendCodeBtn");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const phoneInput = document.getElementById("phoneNumber");
+    const codeInput = document.getElementById("verifyCode");
+
+    const recaptcha = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+      size: 'invisible'
+    });
+
+    phoneBtn.onclick = () => {
+      const number = phoneInput.value;
+      if (!number.startsWith("+")) return alert("Please include country code, e.g. +234...");
+      auth.signInWithPhoneNumber(number, recaptcha)
+        .then(result => {
+          window.confirmationResult = result;
+          alert("Verification code sent!");
+          codeInput.style.display = "block";
+          verifyBtn.style.display = "block";
+        })
+        .catch(err => alert(err.message));
+    };
+
+    verifyBtn.onclick = () => {
+      const code = codeInput.value;
+      if (!code) return alert("Enter verification code");
+      confirmationResult.confirm(code)
+        .then(() => window.location.href = "account.html")
+        .catch(err => alert(err.message));
+    };
+
+    // ✅ Facebook login
+    document.getElementById("facebookBtn").onclick = () => {
+      const provider = new firebase.auth.FacebookAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(() => window.location.href = "account.html")
+        .catch(err => alert(err.message));
+    };
+
+    // ✅ Redirect logged-in users
+    auth.onAuthStateChanged(user => {
+      if (user) window.location.href = "account.html";
+    });
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+  </script>
+</body>
+</html>
