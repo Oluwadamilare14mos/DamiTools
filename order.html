@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DamiTools — My Orders</title>
+  <meta name="description" content="View and manage your DamiTools orders" />
+  <style>
+    :root {
+      --bg:#f6f7fb;
+      --card:#fff;
+      --text:#111;
+      --muted:#666;
+      --brand:#2563eb;
+      --accent:#10b981;
+      --danger:#dc2626;
+    }
+    body {
+      font-family: system-ui, Arial;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap { max-width: 900px; margin: 20px auto; }
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.06);
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1 { margin: 0 0 10px 0; }
+    .muted { color: var(--muted); }
+    .order {
+      border-top: 1px solid rgba(0,0,0,0.05);
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 6px;
+    }
+    .btn-blue { background: var(--brand); color: #fff; }
+    .btn-green { background: var(--accent); color: #fff; }
+    .btn-red { background: var(--danger); color: #fff; }
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Your Orders</h1>
+      <p class="muted">Track, download, or delete your DamiTools orders below.</p>
+      <div id="ordersArea">
+        <div class="empty">Loading your orders...</div>
+      </div>
+      <div style="margin-top:20px">
+        <button id="goHome" class="btn btn-blue">Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <!-- jsPDF for receipts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+  /**********************
+   * Firebase Config
+   **********************/
+  const firebaseConfig = {
+    apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+    authDomain: "damitools.firebaseapp.com",
+    projectId: "damitools",
+    storageBucket: "damitools.firebasestorage.app",
+    messagingSenderId: "875796385681",
+    appId: "1:875796385681:android:563ffc58665bdc94875430"
+  };
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized (orders)");
+  } catch(e) {
+    console.warn("Firebase init error", e);
+  }
+
+  const db = firebase.firestore();
+
+  /**********************
+   * Helpers
+   **********************/
+  function el(id){ return document.getElementById(id); }
+  function fmt(n){ return '₦' + Number(n).toLocaleString(); }
+  function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  /**********************
+   * Load Orders (Local + Firestore)
+   **********************/
+  async function loadOrders(){
+    const area = el('ordersArea');
+    area.innerHTML = '<div class="empty">Loading your orders...</div>';
+    
+    const localOrders = JSON.parse(localStorage.getItem('damitools_orders') || '[]');
+    let cloudOrders = [];
+
+    try {
+      const snap = await db.collection('orders').orderBy('createdAt', 'desc').get();
+      cloudOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+      console.warn("Firestore fetch failed:", e);
+    }
+
+    const allOrders = [...localOrders, ...cloudOrders];
+    if(allOrders.length === 0){
+      area.innerHTML = '<div class="empty">No orders found yet. Start shopping now!</div>';
+      return;
+    }
+
+    let html = '';
+    allOrders.sort((a,b)=> (b.createdAt?.seconds || b.id || 0) - (a.createdAt?.seconds || a.id || 0));
+    allOrders.forEach(order=>{
+      html += `
+        <div class="order">
+          <div><strong>Reference:</strong> ${escapeHtml(order.ref || order.id)}</div>
+          <div><strong>Total:</strong> ${fmt(order.total || 0)}</div>
+          <div><strong>Email:</strong> ${escapeHtml(order.email || '')}</div>
+          <div><strong>Method:</strong> ${escapeHtml(order.method || 'Paystack')}</div>
+          ${order.delivery ? `<div><strong>Deliver to:</strong> ${escapeHtml(order.delivery.name)}, ${escapeHtml(order.delivery.address)}, ${escapeHtml(order.delivery.state)}</div>` : ''}
+          <div style="margin-top:6px">${(order.items||[]).map(i=>`${escapeHtml(i.name)} × ${i.qty}`).join('<br>')}</div>
+          <div class="muted" style="margin-top:4px">${order.createdAt ? new Date(order.createdAt.seconds*1000 || order.createdAt).toLocaleString() : ''}</div>
+          <div style="margin-top:8px">
+            <button class="btn btn-green" onclick="downloadReceipt(${JSON.stringify(order).replace(/"/g,'&quot;')})">Download Receipt</button>
+            <button class="btn btn-red" onclick="deleteOrder('${order.ref || order.id}')">Delete</button>
+          </div>
+        </div>`;
+    });
+    area.innerHTML = html;
+  }
+
+  /**********************
+   * Delete Order
+   **********************/
+  async function deleteOrder(ref){
+    if(!confirm("Are you sure you want to delete this order?")) return;
+
+    // Delete local
+    let localOrders = JSON.parse(localStorage.getItem('damitools_orders')||'[]');
+    localOrders = localOrders.filter(o => o.ref !== ref && o.id !== ref);
+    localStorage.setItem('damitools_orders', JSON.stringify(localOrders));
+
+    // Delete from Firestore
+    try {
+      const snap = await db.collection('orders').where('ref','==',ref).get();
+      snap.forEach(doc => doc.ref.delete());
+    } catch(e){ console.warn("Firestore delete failed", e); }
+
+    loadOrders();
+  }
+
+  /**********************
+   * Download Receipt (PDF)
+   **********************/
+  async function downloadReceipt(order){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("DamiTools — Order Receipt", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Reference: ${order.ref || order.id}`, 20, 35);
+    doc.text(`Email: ${order.email || ''}`, 20, 43);
+    doc.text(`Total: ${fmt(order.total)}`, 20, 51);
+    if(order.delivery){
+      doc.text(`Deliver to: ${order.delivery.name}, ${order.delivery.address}, ${order.delivery.state}`, 20, 59);
+    }
+
+    doc.text("Items:", 20, 70);
+    let y = 78;
+    (order.items||[]).forEach(i=>{
+      doc.text(`- ${i.name} × ${i.qty}  (${fmt(i.price*i.qty)})`, 25, y);
+      y += 8;
+    });
+
+    doc.text(`Date: ${new Date(order.createdAt?.seconds*1000 || order.createdAt).toLocaleString()}`, 20, y+10);
+    doc.text("Thank you for shopping with DamiTools!", 20, y+20);
+
+    doc.save(`DamiTools_Receipt_${order.ref||order.id}.pdf`);
+  }
+
+  /**********************
+   * Events
+   **********************/
+  el('goHome').addEventListener('click', ()=> location.href = 'index.html');
+
+  loadOrders();
+  </script>
+</body>
+</html>
