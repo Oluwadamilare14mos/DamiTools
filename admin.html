@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>DamiTools — Admin Dashboard</title>
+  <meta name="description" content="DamiTools Admin Dashboard for managing products and orders"/>
+  <style>
+    :root {
+      --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666;
+      --brand:#2563eb; --accent:#10b981; --danger:#ef4444;
+    }
+    body {
+      font-family: system-ui, Arial;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+    h1,h2 { margin: 0 0 10px 0; }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+    }
+    .btn-add { background: var(--accent); }
+    .btn-del { background: var(--danger); }
+    .btn-brand { background: var(--brand); }
+    .btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.1); color: var(--text); }
+    input, textarea {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    th { background: #f1f3f8; }
+    .muted { color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>DamiTools Admin Dashboard</h1>
+    <p class="muted">Manage your products and view customer orders.</p>
+
+    <div id="notAuthorized" class="card" style="display:none;">
+      <p>You are not authorized to access this page.</p>
+      <button class="btn btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+
+    <div id="adminArea" style="display:none;">
+      <!-- Product Management -->
+      <div class="card">
+        <h2>Products</h2>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="prodName" type="text" placeholder="Product name"/>
+          <input id="prodPrice" type="number" placeholder="Price (₦)"/>
+          <input id="prodImg" type="file" accept="image/*"/>
+          <button id="addProduct" class="btn btn-add">Add Product</button>
+        </div>
+        <table id="productsTable">
+          <thead>
+            <tr><th>Name</th><th>Price</th><th>Image</th><th>Action</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Orders Management -->
+      <div class="card">
+        <h2>Customer Orders</h2>
+        <div class="row">
+          <button id="refreshOrders" class="btn btn-brand">Refresh Orders</button>
+          <button id="exportOrders" class="btn btn-ghost">Export to CSV</button>
+        </div>
+        <table id="ordersTable">
+          <thead>
+            <tr><th>Email</th><th>Total</th><th>Method</th><th>Date</th><th>Items</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn btn-del" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+  <script>
+    // ✅ Firebase config (corrected from your latest one)
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+      authDomain: "damitools.firebaseapp.com",
+      projectId: "damitools",
+      storageBucket: "damitools.firebasestorage.app",
+      messagingSenderId: "875796385681",
+      appId: "1:875796385681:web:563ffc58665bdc94875430"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    const ADMIN_EMAIL = "damitools14@gmail.com";
+
+    const adminArea = document.getElementById("adminArea");
+    const notAuthorized = document.getElementById("notAuthorized");
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      if (user.email === ADMIN_EMAIL) {
+        adminArea.style.display = "block";
+        loadProducts();
+        loadOrders();
+      } else {
+        notAuthorized.style.display = "block";
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => location.href = "login.html");
+    }
+
+    // 🛒 PRODUCT MANAGEMENT
+    const addBtn = document.getElementById("addProduct");
+    const prodName = document.getElementById("prodName");
+    const prodPrice = document.getElementById("prodPrice");
+    const prodImg = document.getElementById("prodImg");
+    const prodTable = document.getElementById("productsTable").querySelector("tbody");
+
+    addBtn.onclick = async () => {
+      const name = prodName.value.trim();
+      const price = Number(prodPrice.value);
+      const file = prodImg.files[0];
+      if (!name || !price || !file) return alert("Please fill all fields.");
+
+      try {
+        const ref = storage.ref("products/" + Date.now() + "_" + file.name);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await db.collection("products").add({ name, price, image: url, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        alert("Product added!");
+        prodName.value = "";
+        prodPrice.value = "";
+        prodImg.value = "";
+        loadProducts();
+      } catch (err) {
+        console.error(err);
+        alert("Error uploading product");
+      }
+    };
+
+    async function loadProducts() {
+      const snap = await db.collection("products").orderBy("createdAt", "desc").get();
+      prodTable.innerHTML = "";
+      snap.forEach(doc => {
+        const p = doc.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.name}</td>
+          <td>₦${p.price.toLocaleString()}</td>
+          <td><img src="${p.image}" style="width:50px;height:50px;border-radius:6px;object-fit:cover"/></td>
+          <td><button class="btn btn-del" onclick="deleteProduct('${doc.id}')">Delete</button></td>
+        `;
+        prodTable.appendChild(tr);
+      });
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Delete this product?")) return;
+      await db.collection("products").doc(id).delete();
+      loadProducts();
+    }
+
+    // 🧾 ORDERS MANAGEMENT
+    const ordersTable = document.getElementById("ordersTable").querySelector("tbody");
+    document.getElementById("refreshOrders").onclick = loadOrders;
+    document.getElementById("exportOrders").onclick = exportOrders;
+
+    async function loadOrders() {
+      const snap = await db.collection("orders").orderBy("createdAt", "desc").get();
+      ordersTable.innerHTML = "";
+      snap.forEach(doc => {
+        const o = doc.data();
+        const tr = document.createElement("tr");
+        const items = o.items ? o.items.map(i => `${i.name} × ${i.qty}`).join(", ") : "";
+        tr.innerHTML = `
+          <td>${o.email || '-'}</td>
+          <td>₦${(o.total||0).toLocaleString()}</td>
+          <td>${o.method || '-'}</td>
+          <td>${o.createdAt?.toDate?.().toLocaleString?.() || '-'}</td>
+          <td>${items}</td>
+        `;
+        ordersTable.appendChild(tr);
+      });
+    }
+
+    function exportOrders() {
+      let csv = "Email,Total,Method,Date,Items\n";
+      const rows = ordersTable.querySelectorAll("tr");
+      rows.forEach(r => {
+        const cols = [...r.children].map(td => `"${td.textContent.replace(/"/g, '""')}"`);
+        csv += cols.join(",") + "\n";
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "damitools_orders.csv";
+      link.click();
+    }
+  </script>
+</body>
+</html>
