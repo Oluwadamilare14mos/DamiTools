@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DamiTools — Dashboard</title>
+  <meta name="description" content="DamiTools user dashboard to manage your tools, orders, and account."/>
+  <style>
+    :root {
+      --bg:#0e0f11; 
+      --card:#16181d; 
+      --muted:#a1a1aa;
+      --brand:#00b4d8; 
+      --accent:#10b981;
+      --danger:#ef4444;
+    }
+    body {
+      margin:0;
+      background:var(--bg);
+      font-family: system-ui, Arial;
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    header {
+      width:100%;
+      padding:16px 24px;
+      background:#121317;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,0.4);
+    }
+    header h1 {
+      color:var(--brand);
+      font-size:1.25rem;
+    }
+    header button {
+      background:var(--danger);
+      color:#fff;
+      border:none;
+      padding:8px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      transition:0.25s;
+    }
+    header button:hover { background:#c53030; }
+
+    main {
+      width:90%;
+      max-width:800px;
+      margin-top:30px;
+    }
+
+    .card {
+      background:var(--card);
+      border-radius:16px;
+      padding:24px;
+      margin-bottom:24px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .welcome {
+      font-size:1.25rem;
+      margin-bottom:10px;
+    }
+
+    .links {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap:16px;
+      margin-top:20px;
+    }
+    .link {
+      background:#1f2229;
+      padding:20px;
+      border-radius:12px;
+      text-align:center;
+      text-decoration:none;
+      color:#fff;
+      transition:0.3s;
+      border:1px solid transparent;
+    }
+    .link:hover {
+      background:#22252d;
+      border-color:var(--brand);
+    }
+
+    .link span {
+      display:block;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    footer {
+      margin-top:auto;
+      padding:20px;
+      color:var(--muted);
+      font-size:14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DamiTools Dashboard</h1>
+    <button onclick="logoutUser()">Logout</button>
+  </header>
+
+  <main>
+    <div class="card" id="userCard">
+      <p class="welcome">Welcome, <span id="userName">Loading...</span> 👋</p>
+      <p id="userEmail" class="muted"></p>
+    </div>
+
+    <div class="card">
+      <h2>Quick Actions ⚡</h2>
+      <div class="links">
+        <a href="orders.html" class="link">
+          🧾<span>My Orders</span>
+        </a>
+        <a href="tools.html" class="link">
+          🛠️<span>Available Tools</span>
+        </a>
+        <a href="account.html" class="link">
+          👤<span>Account Settings</span>
+        </a>
+        <a href="support.html" class="link">
+          💬<span>Support</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>© <span id="year"></span> DamiTools. All rights reserved.</footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="/js/auth.js"></script>
+
+  <script>
+    // ✅ Initialize Firebase (in case not already done)
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
+      authDomain: "damitools.firebaseapp.com",
+      projectId: "damitools",
+      storageBucket: "damitools.firebasestorage.app",
+      messagingSenderId: "875796385681",
+      appId: "1:875796385681:web:563ffc58665bdc94875430"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.auth();
+
+    // ✅ Get current user
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("userName").textContent = user.displayName || "User";
+        document.getElementById("userEmail").textContent = user.email || user.phoneNumber || "";
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // ✅ Dynamic footer year
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
