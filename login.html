@@ -19,7 +19,9 @@
       justify-content:center;
       align-items:center;
       height:100vh;
+      animation:fadeIn .6s ease-in-out;
     }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
     .card {
       background:var(--card);
       padding:32px;
@@ -39,6 +41,7 @@
       margin:8px 0;
       background:#1f2229;
       color:#fff;
+      font-size:15px;
     }
     button {
       width:100%;
@@ -69,9 +72,18 @@
       color:var(--muted);
       font-size:12px;
     }
-    #recaptcha-container {
-      margin-top:10px;
-      display:none;
+    #recaptcha-container { margin-top:10px; display:none; }
+    .toggle-pass {
+      position:absolute;
+      right:12px;
+      top:12px;
+      cursor:pointer;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .password-wrapper { position:relative; }
+    .loading {
+      opacity:0.7; pointer-events:none;
     }
   </style>
 </head>
@@ -80,24 +92,30 @@
     <h1>Welcome back 👋</h1>
     <p class="muted">Login to your DamiTools account</p>
 
+    <!-- Email Login -->
     <div id="emailLogin">
       <input type="email" id="email" placeholder="Email address"/>
-      <input type="password" id="password" placeholder="Password"/>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password"/>
+        <span class="toggle-pass" id="togglePass">Show</span>
+      </div>
       <button class="btn-brand" id="loginBtn">Login</button>
     </div>
 
     <div class="divider"><span>OR</span></div>
 
+    <!-- Phone Login -->
     <div id="phoneLogin">
       <input type="tel" id="phoneNumber" placeholder="+2348123456789"/>
       <div id="recaptcha-container"></div>
       <button class="btn-phone" id="sendCodeBtn">Send Verification Code</button>
       <input type="text" id="verifyCode" placeholder="Enter code" style="display:none;"/>
-      <button class="btn-accent" id="verifyBtn" style="display:none;">Verify & Login</button>
+      <button class="btn-brand" id="verifyBtn" style="display:none;">Verify & Login</button>
     </div>
 
     <div class="divider"><span>OR</span></div>
 
+    <!-- Facebook Login -->
     <button class="btn-facebook" id="facebookBtn">Continue with Facebook</button>
 
     <p class="muted" style="margin-top:20px;">
@@ -110,7 +128,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ✅ Firebase config
+    // ✅ Firebase Config (your original and correct one)
     const firebaseConfig = {
       apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
       authDomain: "damitools.firebaseapp.com",
@@ -122,32 +140,53 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // ✅ Email login
-    document.getElementById("loginBtn").onclick = async () => {
-      const email = emailInput.value;
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const togglePass = document.getElementById("togglePass");
+
+    // ✅ Toggle password visibility
+    togglePass.onclick = () => {
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePass.textContent = "Hide";
+      } else {
+        passwordInput.type = "password";
+        togglePass.textContent = "Show";
+      }
+    };
+
+    // ✅ Email Login
+    loginBtn.onclick = async () => {
+      const email = emailInput.value.trim();
       const pass = passwordInput.value;
       if (!email || !pass) return alert("Enter email and password");
+      loginBtn.textContent = "Logging in...";
+      loginBtn.classList.add("loading");
       try {
         await auth.signInWithEmailAndPassword(email, pass);
         window.location.href = "account.html";
       } catch (err) {
         alert(err.message);
+      } finally {
+        loginBtn.textContent = "Login";
+        loginBtn.classList.remove("loading");
       }
     };
 
-    // ✅ Phone login
+    // ✅ Phone Login
     const phoneBtn = document.getElementById("sendCodeBtn");
     const verifyBtn = document.getElementById("verifyBtn");
     const phoneInput = document.getElementById("phoneNumber");
     const codeInput = document.getElementById("verifyCode");
-
     const recaptcha = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
       size: 'invisible'
     });
 
     phoneBtn.onclick = () => {
-      const number = phoneInput.value;
+      const number = phoneInput.value.trim();
       if (!number.startsWith("+")) return alert("Please include country code, e.g. +234...");
+      phoneBtn.textContent = "Sending...";
       auth.signInWithPhoneNumber(number, recaptcha)
         .then(result => {
           window.confirmationResult = result;
@@ -155,18 +194,21 @@
           codeInput.style.display = "block";
           verifyBtn.style.display = "block";
         })
-        .catch(err => alert(err.message));
+        .catch(err => alert(err.message))
+        .finally(() => phoneBtn.textContent = "Send Verification Code");
     };
 
     verifyBtn.onclick = () => {
-      const code = codeInput.value;
+      const code = codeInput.value.trim();
       if (!code) return alert("Enter verification code");
+      verifyBtn.textContent = "Verifying...";
       confirmationResult.confirm(code)
         .then(() => window.location.href = "account.html")
-        .catch(err => alert(err.message));
+        .catch(err => alert(err.message))
+        .finally(() => verifyBtn.textContent = "Verify & Login");
     };
 
-    // ✅ Facebook login
+    // ✅ Facebook Login
     document.getElementById("facebookBtn").onclick = () => {
       const provider = new firebase.auth.FacebookAuthProvider();
       auth.signInWithPopup(provider)
@@ -178,9 +220,6 @@
     auth.onAuthStateChanged(user => {
       if (user) window.location.href = "account.html";
     });
-
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
   </script>
 </body>
 </html>
