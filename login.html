@@ -13,7 +13,7 @@
     body {
       margin:0;
       background:var(--bg);
-      font-family: system-ui, Arial;
+      font-family:system-ui,Arial;
       color:#fff;
       display:flex;
       justify-content:center;
@@ -21,7 +21,7 @@
       height:100vh;
       animation:fadeIn .6s ease-in-out;
     }
-    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
     .card {
       background:var(--card);
       padding:32px;
@@ -34,57 +34,32 @@
     h1 { margin-bottom:10px; }
     p.muted { color:var(--muted); font-size:14px; margin-bottom:24px; }
     input {
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:8px;
-      margin:8px 0;
-      background:#1f2229;
-      color:#fff;
-      font-size:15px;
+      width:100%; padding:12px; border:none; border-radius:8px;
+      margin:8px 0; background:#1f2229; color:#fff; font-size:15px;
     }
     button {
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      margin-top:10px;
-      transition:0.25s;
+      width:100%; padding:12px; border:none; border-radius:8px;
+      cursor:pointer; font-weight:600; margin-top:10px; transition:0.25s;
     }
     .btn-brand { background:var(--brand); color:#fff; }
     .btn-brand:hover { background:#0090b3; }
     .btn-phone { background:var(--accent); color:#fff; }
     .btn-facebook { background:#1877f2; color:#fff; }
     .divider {
-      margin:20px 0;
-      border-bottom:1px solid rgba(255,255,255,0.1);
-      position:relative;
+      margin:20px 0; border-bottom:1px solid rgba(255,255,255,0.1); position:relative;
     }
     .divider span {
-      position:absolute;
-      top:-10px;
-      background:var(--card);
-      left:50%;
-      transform:translateX(-50%);
-      padding:0 10px;
-      color:var(--muted);
-      font-size:12px;
+      position:absolute; top:-10px; background:var(--card);
+      left:50%; transform:translateX(-50%);
+      padding:0 10px; color:var(--muted); font-size:12px;
     }
     #recaptcha-container { margin-top:10px; display:none; }
-    .toggle-pass {
-      position:absolute;
-      right:12px;
-      top:12px;
-      cursor:pointer;
-      color:var(--muted);
-      font-size:13px;
-    }
+    .toggle-pass { position:absolute; right:12px; top:12px; cursor:pointer; color:var(--muted); font-size:13px; }
     .password-wrapper { position:relative; }
-    .loading {
-      opacity:0.7; pointer-events:none;
-    }
+    .forgot-link { display:block; text-align:right; margin-top:4px; font-size:13px; }
+    .forgot-link a { color:var(--brand); text-decoration:none; }
+    .forgot-link a:hover { text-decoration:underline; }
+    .loading { opacity:0.7; pointer-events:none; }
   </style>
 </head>
 <body>
@@ -98,6 +73,9 @@
       <div class="password-wrapper">
         <input type="password" id="password" placeholder="Password"/>
         <span class="toggle-pass" id="togglePass">Show</span>
+      </div>
+      <div class="forgot-link">
+        <a href="forgot-password.html">Forgot Password?</a>
       </div>
       <button class="btn-brand" id="loginBtn">Login</button>
     </div>
@@ -128,7 +106,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ✅ Firebase Config (your original and correct one)
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
       authDomain: "damitools.firebaseapp.com",
@@ -145,7 +123,7 @@
     const loginBtn = document.getElementById("loginBtn");
     const togglePass = document.getElementById("togglePass");
 
-    // ✅ Toggle password visibility
+    // Toggle password visibility
     togglePass.onclick = () => {
       if (passwordInput.type === "password") {
         passwordInput.type = "text";
@@ -159,7 +137,7 @@
     // ✅ Email Login
     loginBtn.onclick = async () => {
       const email = emailInput.value.trim();
-      const pass = passwordInput.value;
+      const pass = passwordInput.value.trim();
       if (!email || !pass) return alert("Enter email and password");
       loginBtn.textContent = "Logging in...";
       loginBtn.classList.add("loading");
@@ -167,44 +145,52 @@
         await auth.signInWithEmailAndPassword(email, pass);
         window.location.href = "account.html";
       } catch (err) {
-        alert(err.message);
+        alert("❌ " + err.message);
       } finally {
         loginBtn.textContent = "Login";
         loginBtn.classList.remove("loading");
       }
     };
 
-    // ✅ Phone Login
+    // ✅ Phone Login (fixed reCAPTCHA visibility + SMS sending)
     const phoneBtn = document.getElementById("sendCodeBtn");
     const verifyBtn = document.getElementById("verifyBtn");
     const phoneInput = document.getElementById("phoneNumber");
     const codeInput = document.getElementById("verifyCode");
-    const recaptcha = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-      size: 'invisible'
-    });
+
+    let recaptchaVerifier;
+    function setupRecaptcha() {
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+          size: 'normal'
+        });
+        recaptchaVerifier.render().then(() => {
+          document.getElementById("recaptcha-container").style.display = "block";
+        });
+      }
+    }
 
     phoneBtn.onclick = () => {
       const number = phoneInput.value.trim();
       if (!number.startsWith("+")) return alert("Please include country code, e.g. +234...");
-      phoneBtn.textContent = "Sending...";
-      auth.signInWithPhoneNumber(number, recaptcha)
+      setupRecaptcha();
+      auth.signInWithPhoneNumber(number, recaptchaVerifier)
         .then(result => {
           window.confirmationResult = result;
-          alert("Verification code sent!");
+          alert("📩 Verification code sent!");
           codeInput.style.display = "block";
           verifyBtn.style.display = "block";
         })
-        .catch(err => alert(err.message))
-        .finally(() => phoneBtn.textContent = "Send Verification Code");
+        .catch(err => alert("❌ " + err.message));
     };
 
     verifyBtn.onclick = () => {
       const code = codeInput.value.trim();
       if (!code) return alert("Enter verification code");
       verifyBtn.textContent = "Verifying...";
-      confirmationResult.confirm(code)
+      window.confirmationResult.confirm(code)
         .then(() => window.location.href = "account.html")
-        .catch(err => alert(err.message))
+        .catch(err => alert("❌ " + err.message))
         .finally(() => verifyBtn.textContent = "Verify & Login");
     };
 
@@ -213,10 +199,10 @@
       const provider = new firebase.auth.FacebookAuthProvider();
       auth.signInWithPopup(provider)
         .then(() => window.location.href = "account.html")
-        .catch(err => alert(err.message));
+        .catch(err => alert("❌ " + err.message));
     };
 
-    // ✅ Redirect logged-in users
+    // ✅ Auto-redirect logged-in users
     auth.onAuthStateChanged(user => {
       if (user) window.location.href = "account.html";
     });
