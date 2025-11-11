@@ -106,12 +106,12 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ✅ Firebase Config
+    // ✅ Firebase Config (fixed storageBucket)
     const firebaseConfig = {
       apiKey: "AIzaSyA2lx1hb2qZsYaXrQhsUp7hepYu5nY3fgs",
       authDomain: "damitools.firebaseapp.com",
       projectId: "damitools",
-      storageBucket: "damitools.firebasestorage.app",
+      storageBucket: "damitools.appspot.com",
       messagingSenderId: "875796385681",
       appId: "1:875796385681:web:563ffc58665bdc94875430"
     };
@@ -134,7 +134,7 @@
       }
     };
 
-    // ✅ Email Login
+    // ✅ Email Login (redirect to index.html)
     loginBtn.onclick = async () => {
       const email = emailInput.value.trim();
       const pass = passwordInput.value.trim();
@@ -143,7 +143,7 @@
       loginBtn.classList.add("loading");
       try {
         await auth.signInWithEmailAndPassword(email, pass);
-        window.location.href = "account.html";
+        window.location.href = "index.html";
       } catch (err) {
         alert("❌ " + err.message);
       } finally {
@@ -152,7 +152,7 @@
       }
     };
 
-    // ✅ Phone Login (fixed reCAPTCHA visibility + SMS sending)
+    // ✅ Phone Login (with visible reCAPTCHA)
     const phoneBtn = document.getElementById("sendCodeBtn");
     const verifyBtn = document.getElementById("verifyBtn");
     const phoneInput = document.getElementById("phoneNumber");
@@ -189,22 +189,22 @@
       if (!code) return alert("Enter verification code");
       verifyBtn.textContent = "Verifying...";
       window.confirmationResult.confirm(code)
-        .then(() => window.location.href = "account.html")
+        .then(() => window.location.href = "index.html")
         .catch(err => alert("❌ " + err.message))
         .finally(() => verifyBtn.textContent = "Verify & Login");
     };
 
-    // ✅ Facebook Login
+    // ✅ Facebook Login (redirect to index.html)
     document.getElementById("facebookBtn").onclick = () => {
       const provider = new firebase.auth.FacebookAuthProvider();
       auth.signInWithPopup(provider)
-        .then(() => window.location.href = "account.html")
+        .then(() => window.location.href = "index.html")
         .catch(err => alert("❌ " + err.message));
     };
 
     // ✅ Auto-redirect logged-in users
     auth.onAuthStateChanged(user => {
-      if (user) window.location.href = "account.html";
+      if (user) window.location.href = "index.html";
     });
   </script>
 </body>
